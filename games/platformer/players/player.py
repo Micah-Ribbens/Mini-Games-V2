@@ -24,8 +24,8 @@ class Player(WeaponUser):
     running_deceleration_time = .3
     base_top_edge = 0
     base_left_edge = 100
-    max_velocity = VelocityCalculator.get_velocity(screen_length, 600)
-    time_to_get_to_max_velocity = .6
+    max_velocity = VelocityCalculator.get_velocity(screen_length, 350)
+    time_to_get_to_max_velocity = .05
     total_hit_points = 20
     hit_points_left = total_hit_points
     object_type = "Player"
@@ -304,6 +304,7 @@ class Player(WeaponUser):
             params:
                 last_platform: Platform; the platform the player would be jumping from
                 margin_of_error: double; how accurate the player has to be to clear this jump
+                min_accuracy: double; the minimum accuracy possible
 
             returns: double; max y coordinate that the next platform could be at that leaves the player 'margin_of_error'
         """
@@ -314,7 +315,7 @@ class Player(WeaponUser):
         # The absolute max of a platform is the player's height because the player has to get its bottom_edge on the platform
         # Which would mean the player's y coordinate would be 0 also
         max_buffer = VelocityCalculator.get_measurement(screen_height, 25)
-        buffer = LineSegment(Point(1, 0), Point(min_accuracy, max_buffer)).get_top_edge(accuracy)
+        buffer = LineSegment(Point(1, 0), Point(min_accuracy, max_buffer)).get_y_coordinate(accuracy)
         if topmost_top_edge <= self.height + buffer:
             topmost_top_edge = self.height + buffer
 

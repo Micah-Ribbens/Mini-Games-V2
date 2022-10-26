@@ -22,11 +22,17 @@ def load_text(name, font_size, background_color, text_color):
     if fonts.get(font_size) is None:
         fonts[font_size] = pygame.font.Font("freesansbold.ttf", font_size)
 
+# Name is unused, but for pyglet it creates a huge performance enhancement
 def render_text(left_edge, top_edge, text_color, background_color, text, font_size, is_centered, name):
+
     left_edge, top_edge = convert_to_int(left_edge, top_edge)
 
     font = fonts.get(font_size)
+    rendered_text = None
+    # try:
     rendered_text = font.render(text, True, text_color, background_color)
+    # except:
+    #     print("LS")
     text_rectangle = rendered_text.get_rect()
 
     if is_centered:

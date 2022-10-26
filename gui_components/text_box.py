@@ -12,6 +12,9 @@ class TextBox(Component):
     is_centered = False
 
     def __init__(self, text, font_size, background_color, text_color, is_centered):
+        if not isinstance(text, str):
+            raise ValueError("Text must be a string")
+
         self.text, self.font_size = text, font_size
         self.text_color, self.is_centered = text_color, is_centered
         self.background_color, self.color = background_color, background_color
@@ -31,3 +34,4 @@ class TextBox(Component):
 
     def set_background_color(self, background_color):
         self.color, self.background_color = background_color, background_color
+

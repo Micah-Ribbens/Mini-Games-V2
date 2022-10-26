@@ -42,7 +42,7 @@ class Generator:
         if new_platform_left_edge + new_platform_length > screen_length:
             new_platform_left_edge = screen_length - new_platform_left_edge
 
-        return Platform(new_platform_left_edge, new_platform_top_edge, new_platform_length, new_platform_height, True)
+        return Platform(new_platform_left_edge, new_platform_top_edge, new_platform_length, new_platform_height)
 
     def get_horizontal_distance(self, vertical_time, player, accuracy):
         """returns: double; the horizontal distance apart the old platform and the new one should be"""
@@ -72,7 +72,7 @@ class Generator:
         if platform_left_edge + platform_length > screen_length:
             platform_left_edge = screen_length - platform_length
 
-        return Platform(platform_left_edge, platform_top_edge, platform_length, platform_height, True)
+        return Platform(platform_left_edge, platform_top_edge, platform_length, platform_height)
 
     def get_easiest_platform(self, player: Player, last_platform, difficulty):
         """returns: Platform; the easiest platform possible at this difficulty"""
@@ -89,7 +89,7 @@ class Generator:
         if platform_left_edge + platform_length > screen_length:
             platform_left_edge = screen_length - platform_length
 
-        return Platform(platform_left_edge, platform_top_edge, platform_length, platform_height, True)
+        return Platform(platform_left_edge, platform_top_edge, platform_length, platform_height)
 
     def _get_accuracy(self, difficulty):
         """returns: double; how accurate the player has to be (1 - margin_of_error)"""
@@ -101,10 +101,10 @@ class Generator:
         margins_of_error.add_point(Point(70, 15))
         margins_of_error.add_point(Point(80, 10))
         margins_of_error.add_point(Point(90, 6))
-        margins_of_error.add_point(Point(100, 3))
+        margins_of_error.add_point(Point(100, 0))
 
         # Margins_of_error are in percentages
-        return 1 - ( margins_of_error.get_top_edge(difficulty) / 100 )
+        return 1 - ( margins_of_error.get_y_coordinate(difficulty) / 100 )
 
     def _get_bottommost_top_edge(self, last_platform, platform_height):
         """returns: double; the generated platform's bottommost top_edge (must stay within the screen)"""

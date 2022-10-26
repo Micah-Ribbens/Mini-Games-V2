@@ -121,3 +121,16 @@ def is_within_screen(game_object):
 
     return (game_object.right_edge > 0 and game_object.left_edge < screen_length and
             game_object.bottom_edge > 0 and game_object.top_edge < screen_height)
+
+def get_next_index(current_index, max_index):
+    """returns: int; the index after current_index (it cycles, so once it gets beyond the max_index it goes back to 0)"""
+
+    next_index = current_index + 1
+    return next_index if next_index <= max_index else 0
+
+
+def get_previous_index(current_index, max_index):
+    """returns: int; the index before current_index (it cycles, so once it gets below 0 it goes to the max_index"""
+
+    prev_index = current_index - 1
+    return prev_index if prev_index >= 0 else max_index

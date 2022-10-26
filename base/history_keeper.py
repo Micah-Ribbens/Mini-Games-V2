@@ -45,7 +45,12 @@ class HistoryKeeper:
 
         return HistoryKeeper.last_objects.get(f"{name}{time}")
 
+    @staticmethod
+    def reset():
+        """Makes the objects the HistoryKeeper keeps track of back down to 0"""
 
+        HistoryKeeper.last_objects = {}
+        HistoryKeeper.last_time = 0
 
 
 

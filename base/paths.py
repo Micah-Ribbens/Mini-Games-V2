@@ -9,7 +9,7 @@ class SimplePath:
     lines = []
     last_point = None
 
-    def __init__(self, start_point, other_points):
+    def __init__(self, start_point, other_points=[]):
         """Initializes the object"""
 
         self.lines = []
