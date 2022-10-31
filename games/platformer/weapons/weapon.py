@@ -17,7 +17,6 @@ class Weapon(abc.ABC):
     use_key_event = None
     user = None
     sub_components = []
-    # is_runnable = False
     wait_event = None
     object_type = "" # Used for collisions, so the collision code knows the type of an object
     index = 0
@@ -53,6 +52,9 @@ class Weapon(abc.ABC):
         return self.user.right_edge if is_facing_right else self.user.left_edge - horizontal_length
 
     def reset(self):
+        pass
+
+    def update_for_side_scrolling(self, amount):
         pass
 
     @abc.abstractmethod

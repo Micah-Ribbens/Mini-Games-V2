@@ -1,6 +1,7 @@
 import pygame
 
 from base.dimensions import Dimensions
+from base.engines import CollisionsEngine
 from base.events import Event
 from base.history_keeper import HistoryKeeper
 from base.utility_functions import *
@@ -59,23 +60,49 @@ class GeneratorTestScreen(PlatformerScreen):
         grid = Grid(Dimensions(0, 0, screen_length, screen_height * .1), 1, None)
         grid.turn_into_grid(self.hud, None, None)
 
+    def run_base_game(self):
+        """Runs everything that the base game is doing (with some exceptions like side_scrolling)"""
+
+        self.gravity_engine.run()
+        for player in self.players:
+            # Have to do this every cycle so the player is realisticly affected by gravity every cycle
+            if player.platform_is_on is not None and not CollisionsEngine.is_collision(player, player.platform_is_on):
+                player.set_is_on_platform(False, None)
+
+            # player.run()
+
+        if self.frames % 1 == 0 and self.frames > 1:
+            self.update_game_objects()
+            self.run_all_collisions()
+
+            # All the enemies and players should do something based on the updated collision they got from 'self.run_all_collisions()'
+            for game_object in self.enemies + self.players:
+                game_object.run_collisions(self.last_time)
+
+        if self.frames % 1 == 0:
+            self.add_game_objects()
+            self.last_time = VelocityCalculator.time
+
+        for enemy in self.enemies:
+            enemy.run_player_interactions(self.players)
+
+        self.frames += 1
+
     def run(self):
         """Runs all that is necessary to have a generator test screen"""
 
-        super().run()
+        self.run_base_game()
+
         other_platform_list = self.hardest_platforms if self.is_hard_platform else self.easiest_platforms
         self.platforms = [self.main_platforms[self.current_index], other_platform_list[self.current_index]]
-        # HistoryKeeper.add(self.players[0], self.players[0].name, needs_dimensions_only=True)
 
         self.main_platform_number_field.text = f"Main Platform #{self.current_index + 1}"
         self.platform_type_field.text = "Showing Hard Platform" if self.is_hard_platform else "Is Showing Easy Platform"
 
         if key_is_hit(KEY_DOWN) and self.can_change_index:
-            # print("HIT D")
             self.current_index = get_previous_index(self.current_index, len(self.main_platforms) - 1)
 
         if key_is_hit(KEY_UP) and self.can_change_index:
-            # print("HIT UP")
             self.current_index = get_next_index(self.current_index, len(self.main_platforms) - 1)
 
         if key_is_hit(KEY_QUESTION_MARK):

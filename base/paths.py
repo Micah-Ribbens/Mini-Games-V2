@@ -75,8 +75,8 @@ class VelocityPath:
     """A path that takes into account velocity"""
 
     velocity = 0
-    x_coordinate_lines = []
-    y_coordinate_lines = []
+    left_edge_lines = []
+    top_edge_lines = []
     last_end_time = 0
 
     times = []  # Stores the times that the get_coordinates() function was called
@@ -84,14 +84,13 @@ class VelocityPath:
     last_point = None
     is_unending = False
     previous_time = 0
-
     def __init__(self, start_point, other_points, velocity):
         """Initializes the object"""
 
         self.velocity = velocity
         self.path_lines = []
-        self.x_coordinate_lines = []
-        self.y_coordinate_lines = []
+        self.left_edge_lines = []
+        self.top_edge_lines = []
         self.times = []
 
         self.last_point = start_point
@@ -120,14 +119,14 @@ class VelocityPath:
     def add_time_point(self, point, end_time):
         """Adds the point to the path using the end_time as the x_coordinate for the x and y coordinate lines"""
 
-        x_coordinate_line = LineSegment(Point(self.last_end_time, self.last_point.x_coordinate),
+        left_edge_line = LineSegment(Point(self.last_end_time, self.last_point.x_coordinate),
                                         Point(end_time, point.x_coordinate))
 
-        y_coordinate_line = LineSegment(Point(self.last_end_time, self.last_point.y_coordinate),
+        top_edge_line = LineSegment(Point(self.last_end_time, self.last_point.y_coordinate),
                                         Point(end_time, point.y_coordinate))
 
-        self.x_coordinate_lines.append(x_coordinate_line)
-        self.y_coordinate_lines.append(y_coordinate_line)
+        self.left_edge_lines.append(left_edge_line)
+        self.top_edge_lines.append(top_edge_line)
         self.last_end_time = end_time
 
         # The height for the path_line doesn't matter
@@ -149,23 +148,23 @@ class VelocityPath:
         return self._get_coordinates(self.total_time)
 
     def _get_coordinates(self, time):
-        """returns: [x_coordinate, y_coordinate]; the coordinates at that time"""
+        """returns: [left_edge, top_edge]; the coordinates at that time"""
 
         index = self.get_index_of_line(time)
-        x_coordinate_line = self.x_coordinate_lines[index]
-        y_coordinate_line = self.y_coordinate_lines[index]
+        left_edge_line = self.left_edge_lines[index]
+        top_edge_line = self.top_edge_lines[index]
 
-        return [x_coordinate_line.get_y_coordinate(time), y_coordinate_line.get_y_coordinate(time)]
+        return [left_edge_line.get_y_coordinate(time), top_edge_line.get_y_coordinate(time)]
 
     def get_index_of_line(self, time):
         """returns: int; the index of the line that the path is currently on"""
 
-        return_value = len(self.x_coordinate_lines) - 1
+        return_value = len(self.left_edge_lines) - 1
 
-        for x in range(len(self.y_coordinate_lines)):
-            y_coordinate_line: LineSegment = self.y_coordinate_lines[x]
-            start_point = y_coordinate_line.start_point
-            end_point = y_coordinate_line.end_point
+        for x in range(len(self.top_edge_lines)):
+            top_edge_line: LineSegment = self.top_edge_lines[x]
+            start_point = top_edge_line.start_point
+            end_point = top_edge_line.end_point
 
             if time >= start_point.x_coordinate and time <= end_point.x_coordinate:
                 return_value = x
@@ -183,11 +182,11 @@ class VelocityPath:
 
     def __str__(self):
         string = ""
-        for x in range(len(self.y_coordinate_lines)):
-            y_coordinate_line = self.y_coordinate_lines[x]
-            x_coordinate_line = self.x_coordinate_lines[x]
+        for x in range(len(self.top_edge_lines)):
+            top_edge_line = self.top_edge_lines[x]
+            left_edge_line = self.left_edge_lines[x]
 
-            string += f"x {x_coordinate_line}, y {y_coordinate_line}\n"
+            string += f"x {left_edge_line}, y {top_edge_line}\n"
 
         return string
 
@@ -227,3 +226,15 @@ class ActionPath(VelocityPath):
             self.actions[new_index]()
 
         self.object_on_path.left_edge, self.object_on_path.top_edge = self.get_coordinates()
+
+    def update_for_side_scrolling(self, amount):
+        """Updates the Path, so side scrolling doesn't cause any issues"""
+
+        for left_edge_line in self.left_edge_lines:
+
+            # The y_coordinate for the left_edge_line is the 'left_edge' and the x_coordinate is 'time'
+            left_edge_line.start_point.y_coordinate -= amount
+            left_edge_line.end_point.y_coordinate -= amount
+
+            left_edge_line.update_line_values()
+

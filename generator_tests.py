@@ -26,17 +26,17 @@ class GeneratorSelectorScreen(NavigationScreen):
     def __init__(self):
         """Initializes the object"""
 
-        generator = Generator()
         main_platforms = self.get_main_platforms()
         player = PlatformerScreen().players[0]
+        generator = Generator(player)
         total_screens = 100
         for x in range(total_screens):
             hardest_platforms = []
             easiest_platforms = []
             for main_platform in main_platforms:
 
-                hardest_platforms.append(generator.get_hardest_platform(player, main_platform, x + 1))
-                easiest_platforms.append(generator.get_easiest_platform(player, main_platform, x + 1))
+                hardest_platforms.append(generator.get_hardest_platform(main_platform, x + 1))
+                easiest_platforms.append(generator.get_easiest_platform(main_platform, x + 1))
 
             self.sub_screens.append(GeneratorTestScreen(x + 1, total_screens, x + 1, main_platforms, hardest_platforms, easiest_platforms))
 

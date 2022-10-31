@@ -257,8 +257,7 @@ class PhysicsPath(PhysicsEquation):
 
         # Decides if it is just using the velocity or both velocity and acceleration
         if should_change_player_coordinates and not is_using_everything:
-            # print("ME CALLED ITEM")
-            self.game_object.__dict__[self.attribute_modifying] += self.get_distance_from_velocity()
+            self.game_object.__dict__[self.attribute_modifying] += self.get_velocity_displacement()
 
         elif should_change_player_coordinates:
             self.game_object.__dict__[self.attribute_modifying] = self.get_distance(self.current_time)
@@ -282,11 +281,11 @@ class PhysicsPath(PhysicsEquation):
         self.initial_distance = initial_distance
         self.set_all_variables(self.initial_distance + self.height_of_path, self.time, self.initial_distance)
 
-    def get_distance_from_velocity(self):
-        """returns: double; the distance from velocity (and initial distance)"""
+    def get_velocity_displacement(self):
+        """returns: double; the displacement from velocity (the last_time - start_time)"""
 
-        current_distance = self.initial_velocity * self.current_time + self.initial_distance
-        last_distance = self.initial_velocity * self.last_time + self.initial_distance
+        current_distance = self.initial_velocity * self.current_time
+        last_distance = self.initial_velocity * self.last_time
 
         return current_distance - last_distance
 
@@ -297,6 +296,11 @@ class PhysicsPath(PhysicsEquation):
         last_distance = 1 / 2 * self.acceleration * pow(self.last_time, 2)
 
         return current_distance - last_distance
+
+    def get_total_displacement(self):
+        """returns: double; the displacement from both velocity and acceleration"""
+
+        return self.get_velocity_displacement() + self.get_acceleration_displacement()
 
     def get_acceleration_displacement_from_time(self, time):
         """returns: double; the displacement from acceleration at that time"""

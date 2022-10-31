@@ -24,14 +24,13 @@ class Player(WeaponUser):
     running_deceleration_time = .3
     base_top_edge = 0
     base_left_edge = 100
-    max_velocity = VelocityCalculator.get_velocity(screen_length, 350)
-    time_to_get_to_max_velocity = .05
+    max_velocity = VelocityCalculator.get_velocity(screen_length, 450)
+    time_to_get_to_max_velocity = .2
     total_hit_points = 20
     hit_points_left = total_hit_points
     object_type = "Player"
     length = VelocityCalculator.get_measurement(screen_length, 5)
     height = player_height
-    is_runnable = False
 
     # Miscellaneous
     jumping_path = None
@@ -108,7 +107,9 @@ class Player(WeaponUser):
             self.is_facing_right = True if key_is_hit(self.right_key) and self.can_move_right else self.is_facing_right
 
         elif self.can_decelerate():
-            self.deceleration_path.run(False, False, True)
+            self.deceleration_path.run(False, False, is_changing_coordinates=False)
+
+            self.left_edge += self.deceleration_path.get_total_displacement()
 
         # If the player is facing a direction, but the player can't move that direction that means the player can't decelerate or accelerate
         should_reset_paths = (self.is_facing_right and not self.can_move_right) or (not self.is_facing_right and not self.can_move_left)
@@ -294,9 +295,10 @@ class Player(WeaponUser):
     def cause_damage(self, amount):
         """Damages the player by that amount and also starts the player's invincibility"""
 
-        if self.invincibility_event.has_finished():
-            self.hit_points_left -= amount
-            self.invincibility_event.start()
+        # if self.invincibility_event.has_finished():
+        #     self.hit_points_left -= amount
+        #     self.invincibility_event.start()
+        pass
 
     def get_topmost_top_edge(self, last_platform, accuracy, min_accuracy):
         """ summary: Figures out the minimum y coordinate of the next platform (remember the closer to the top of the screen the lower the y coordinate)
@@ -358,6 +360,8 @@ class Player(WeaponUser):
 
         second_falling_times = solve_quadratic(1/2 * gravity, 0, -second_falling_distance)
         second_falling_time = second_falling_times[0]
+
+        # The other side of the parabola is needed if the length is 2 (the other side is a negative number)
         if len(second_falling_times) == 2:
             second_falling_time = second_falling_times[1]
 

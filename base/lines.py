@@ -15,6 +15,13 @@ class LineSegment:
     def __init__(self, start_point, end_point):
         self.start_point, self.end_point = start_point, end_point
 
+        self.update_line_values()
+
+    def update_line_values(self):
+        """Updates the line so it reflects the values in the points"""
+
+        start_point, end_point = self.start_point, self.end_point
+
         if start_point.x_coordinate == end_point.x_coordinate:
             end_point.x_coordinate += pow(10, -9)
 
@@ -44,6 +51,11 @@ class LineSegment:
         correct_y_coordinate = point.y_coordinate == self.get_y_coordinate(point.x_coordinate)
 
         return contains_coordinates and correct_y_coordinate
+
+    def slope_is_positive(self):
+        """returns: boolean; if the slope is >= 0"""
+
+        return self.slope >= 0
 
 
 

@@ -99,6 +99,10 @@ class ProjectileThrower(Weapon):
 
         self.deleted_sub_components_indexes.append(index_of_sub_component)
 
+    def update_for_side_scrolling(self, amount):
+        for projectile in self.sub_components:
+            projectile.left_edge -= amount
+
     def reset(self):
         """Resets everything back to the start of the game"""
 

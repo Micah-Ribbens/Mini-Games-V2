@@ -125,6 +125,13 @@ class WeaponUser(Component):
 
         self.hit_points_left -= amount
 
+    def update_for_side_scrolling(self, amount):
+        self.left_edge -= amount
+
+        # Some Enemies don't have weapons, so an error will be thrown if we try to call the weapon's update_for_side_scrolling()
+        if self.weapon is not None:
+            self.weapon.update_for_side_scrolling(amount)
+
     def get_components(self):
         """returns: Component[]; all the components that should be rendered and ran"""
 

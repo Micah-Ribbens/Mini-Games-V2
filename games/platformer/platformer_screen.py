@@ -1,9 +1,12 @@
+import random
 from base.dimensions import Dimensions
 from base.engines import CollisionsEngine
 from base.history_keeper import HistoryKeeper
 from base.utility_functions import is_within_screen
 from base.velocity_calculator import VelocityCalculator
+from game_dependencies.platformer.generator import Generator
 from game_dependencies.platformer.gravity_engine import GravityEngine
+from game_dependencies.platformer.platformer_variables import side_scrolling_start_distance
 from games.platformer.inanimate_objects.platform import Platform
 from games.platformer.players.player import Player
 from games.platformer.enemies.charging_bull import ChargingBull
@@ -18,7 +21,6 @@ from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectile
 
 class PlatformerScreen(Screen):
     """A basic platformer game"""
-
     players = []
     player_health_bars = []
     enemies = []
@@ -27,6 +29,8 @@ class PlatformerScreen(Screen):
     gravity_engine = None
     frames = 0
     last_time = 0  # The last that objects were added to the History Keeper
+    rightmost_platform = None
+    generator = None
 
     def __init__(self):
         """Initializes the object"""
@@ -47,6 +51,7 @@ class PlatformerScreen(Screen):
             self.player_health_bars.append(HealthBar(player, lambda: False))
 
         health_grid.turn_into_grid(self.player_health_bars, None, None)
+        self.generator = Generator(self.players[0])
 
     def setup_enemies_and_platforms(self):
         """Creates the enemies and platforms of the game for starting out"""
@@ -58,15 +63,17 @@ class PlatformerScreen(Screen):
         # self.platforms = [Platform(), Platform(Platform().right_edge + 200, Platform().y_coordinate - self.players[0].max_jump_height, 200, 200, True)]
 
         # One Long Platform
-        # self.platforms = [Platform(100, 300, 800, 100, True)]
+        self.platforms = [Platform(0, screen_height - 100, 800, 100)]
 
         # Sandwich Platform
-        self.platforms = [Platform(100, 300, 800, 100), Platform(0, 200, 100, 100), Platform(910, 200, 100, 100)]
+        # self.platforms = [Platform(100, 300, 800, 100), Platform(0, 200, 100, 100), Platform(910, 200, 100, 100)]
 
         # One Medium Platform
         # self.platforms = [Platform(100, 300, 800, 100, True)]
 
-        self.enemies = [ChargingBull(10, 20, self.platforms[0]), BouncyEnemy(10, 20, self.platforms[2]), StraightEnemy(10, 20, self.platforms[1])]
+        self.enemies = []
+
+        self.update_rightmost_platform()
 
     def run(self):
         """Runs all the code necessary in order for the platformer to work"""
@@ -77,8 +84,6 @@ class PlatformerScreen(Screen):
             if player.platform_is_on is not None and not CollisionsEngine.is_collision(player, player.platform_is_on):
                 player.set_is_on_platform(False, None)
 
-            player.run()
-
         if self.frames % 1 == 0 and self.frames > 1:
             self.update_game_objects()
             self.run_all_collisions()
@@ -87,7 +92,6 @@ class PlatformerScreen(Screen):
             for game_object in self.enemies + self.players:
                 game_object.run_collisions(self.last_time)
 
-        # TODO keep original next 3 lines or after that 2 lines?
         if self.frames % 1 == 0:
             self.add_game_objects()
             self.last_time = VelocityCalculator.time
@@ -96,6 +100,48 @@ class PlatformerScreen(Screen):
             enemy.run_player_interactions(self.players)
 
         self.frames += 1
+
+        self.run_side_scrolling()
+        self.run_platform_generation()
+
+    def run_platform_generation(self):
+        """Runs all the code for generating platforms"""
+
+        if self.rightmost_platform.right_edge <= screen_length:
+            new_platform = self.generator.generate_platform(self.rightmost_platform, 50)
+            self.platforms.append(new_platform)
+            self.enemies.append(self.get_random_enemy(new_platform))
+            self.update_rightmost_platform()
+
+    def get_random_enemy(self, platform):
+        """returns: Enemy; a random enemy"""
+
+        enemy_types = [StraightEnemy, ChargingBull, BouncyEnemy]
+        enemy_type = random.choice(enemy_types)
+        return enemy_type(10, 100, platform)
+
+    def run_side_scrolling(self):
+        """Makes the screen side scroll based off the player who is the farthest behind"""
+
+        # First the players are sorted by the smallest left_edge and then the smallest player is taken
+        farthest_back_player = list(sorted(self.players, key=lambda player: player.left_edge))[0]
+        shortest_distance = farthest_back_player.right_edge
+
+
+        # If the distance of the farthest back player is greater than the distance needed for sidescrolling then
+        # All the objects in the game should be side scrolled
+        if shortest_distance > side_scrolling_start_distance:
+            side_scrolling_distance = shortest_distance - side_scrolling_start_distance
+
+            self.side_scroll_objects(side_scrolling_distance, self.players)
+            self.side_scroll_objects(side_scrolling_distance, self.enemies)
+            self.side_scroll_objects(side_scrolling_distance, self.platforms)
+
+    def side_scroll_objects(self, distance, game_objects):
+        """Moves all the objects leftwards by the distance specified (side scrolling)"""
+
+        for game_object in game_objects:
+            game_object.update_for_side_scrolling(distance)
 
     def update_game_objects(self):
         """Runs the necessary code to prepare for collisions and some other miscellaneous stuff like making sure
@@ -113,12 +159,19 @@ class PlatformerScreen(Screen):
         enemy_components = []
         for enemy in self.enemies:
             enemy.reset_collision_data()
-            if enemy.hit_points_left > 0 and is_within_screen(enemy):
+
+            if enemy.hit_points_left > 0 and enemy.platform.right_edge >= 0:
                 updated_enemies.append(enemy)
                 enemy_components += enemy.get_sub_components()
 
         self.enemies = updated_enemies
         self.game_objects = player_components + enemy_components + self.platforms
+
+    def update_rightmost_platform(self):
+        """Updates the attribute 'rightmost_platform' so it is actually the rightmost_platform"""
+
+        # First the platforms are sorted with right_edge's decreasing, then the index of 0 is taken giving the rightmost platform
+        self.rightmost_platform = list(sorted(self.platforms, key=lambda platform: platform.right_edge, reverse=True))[0]
 
     def reset_game(self):
         """Resets the game after the player's death"""
