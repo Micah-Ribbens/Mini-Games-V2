@@ -36,6 +36,11 @@ class TimedEvent:
         self.restarts_upon_completion = restarts_upon_completion
 
     def run(self, should_reset, should_start):
+
+        # The variable is done was True last cycle meaning it should be False again (enough time was given to get the value)
+        if self.variable_is_done:
+            self.variable_is_done = False
+
         if should_reset:
             self.reset()
 

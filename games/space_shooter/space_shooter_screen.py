@@ -16,7 +16,7 @@ class SpaceShooterScreen(NavigationScreen):
         super().__init__(["Single Player", "2 Player Co-op", "2 Player Versus"], self.meteorite_game_screens)
         self.modify_values(purple, KEY_Q)
 
-        file_reader = FileReader("games/space_shooter/high_score.txt")
+        file_reader = FileReader("games/space_shooter/high_scores.txt")
         high_scores = file_reader.get_float_list("high_scores")
 
         for x in range(len(self.meteorite_game_screens)):
@@ -31,5 +31,5 @@ class SpaceShooterScreen(NavigationScreen):
             high_scores.append(screen.high_score)
 
         high_score_string = high_scores.__str__().replace(" ", "")
-        file_writer = open("games/space_shooter/high_score.txt", "w+")
+        file_writer = open("games/space_shooter/high_scores.txt", "w+")
         file_writer.write(f"high_scores:{high_score_string}")

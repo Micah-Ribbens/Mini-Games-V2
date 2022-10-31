@@ -7,3 +7,7 @@ player_height = VelocityCalculator.get_measurement(screen_height, 15)
 side_scrolling_start_distance = VelocityCalculator.get_measurement(screen_length, 33)
 # The minimum amount of the next platform that has to be visible when the player gets to the end of the previous platform
 min_platform_length_visible = VelocityCalculator.get_measurement(screen_length, 20)
+
+# Scoring
+score_from_passing_platform = 100
+score_from_killing_enemy = 250

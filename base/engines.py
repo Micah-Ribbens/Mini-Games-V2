@@ -123,7 +123,8 @@ class CollisionsEngine:
             print("ERROR NO PREVIOUS GAME OBJECTS FOUND")
             return False
 
-        objects_are_touching = object1.bottom_edge == object2.top_edge and CollisionsEngine.is_horizontal_collision(object1,
+        # So rounding doesn't cause any issues
+        objects_are_touching = int(object1.bottom_edge) == int(object2.top_edge) and CollisionsEngine.is_horizontal_collision(object1,
                                                                                                                object2)
         is_collision = is_collision if is_collision is not None else CollisionsEngine.is_collision(object1, object2)
 

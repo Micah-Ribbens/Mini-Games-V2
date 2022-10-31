@@ -26,7 +26,7 @@ class Player(WeaponUser):
     base_left_edge = 100
     max_velocity = VelocityCalculator.get_velocity(screen_length, 450)
     time_to_get_to_max_velocity = .2
-    total_hit_points = 20
+    total_hit_points = 60
     hit_points_left = total_hit_points
     object_type = "Player"
     length = VelocityCalculator.get_measurement(screen_length, 5)
@@ -74,7 +74,7 @@ class Player(WeaponUser):
 
         self.jumping_event, self.right_event, self.left_event = Event(), Event(), Event()
 
-        self.weapon = BouncyProjectileThrower(lambda: key_is_pressed(self.attack_key), self)
+        self.weapon = ProjectileThrower(lambda: key_is_pressed(self.attack_key), self)
         self.invincibility_event = TimedEvent(1, False)
         self.paths_and_events = [self.jumping_path, self.deceleration_path, self.acceleration_path]
 
@@ -300,10 +300,9 @@ class Player(WeaponUser):
     def cause_damage(self, amount):
         """Damages the player by that amount and also starts the player's invincibility"""
 
-        # if self.invincibility_event.has_finished():
-        #     self.hit_points_left -= amount
-        #     self.invincibility_event.start()
-        pass
+        if self.invincibility_event.has_finished():
+            self.hit_points_left -= amount
+            self.invincibility_event.start()
 
     def get_topmost_top_edge(self, last_platform, accuracy, min_accuracy):
         """ summary: Figures out the minimum y coordinate of the next platform (remember the closer to the top of the screen the lower the y coordinate)

@@ -35,6 +35,7 @@ class Player(Component):
 
         for x in range(self.total_frames):
             load_image(f"{self.base_path}{x}.png")
+
         super().__init__(f"{self.base_path}0.png")
         load_image(f"{self.base_path}{self.jump_frame}.png")
         self.initial_distance = ground_top_edge - self.height
@@ -46,7 +47,7 @@ class Player(Component):
         # Gotten using math
         self.upwards_velocity = (-2 * self.initial_distance + 2 * vertex)/time_to_vertex
         self.gravity = 2*(self.initial_distance - vertex)/pow(time_to_vertex, 2)
-        self.next_frame_event = TimedEvent(.17)
+        self.next_frame_event = TimedEvent(.1)
 
         self.number_set_dimensions(0, self.initial_distance, self.length, self.height)
 
@@ -85,8 +86,10 @@ class Player(Component):
 
     def run_animation(self):
         self.next_frame_event.run(False, not self.is_in_air)
+
         if self.next_frame_event.is_done():
             self.animation_frame = (self.animation_frame + 1) % self.total_frames
+            # self.next_frame_event.reset()
             overshoot_time = self.next_frame_event.current_time - self.next_frame_event.time_needed
             self.next_frame_event.current_time = overshoot_time
 

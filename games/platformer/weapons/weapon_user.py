@@ -24,10 +24,10 @@ class WeaponUser(Component):
     base_path_to_image = ""
 
     # Collision Data
-    left_collision_data = []
-    right_collision_data = []
-    top_collision_data = []
-    bottom_collision_data = []
+    left_collision_data = [False, None]
+    right_collision_data = [False, None]
+    top_collision_data = [False, None]
+    bottom_collision_data = [False, None]
     components = []
 
     def __init__(self, base_path_to_image):
@@ -94,8 +94,6 @@ class WeaponUser(Component):
            collision data gotten from the inanimate_object and is by the perspective of the user (has the user collided with the inanimate_object's right_edge)"""
 
         is_same_coordinates = self.right_edge == inanimate_object.left_edge or self.left_edge == inanimate_object.right_edge
-        if inanimate_object.top_edge == 300 and self.max_velocity == VelocityCalculator.get_velocity(screen_length, 700):
-            CollisionsEngine.is_top_collision(self, inanimate_object, True, time)
 
         return [CollisionsEngine.is_left_collision(self, inanimate_object, is_collision, time),
                 CollisionsEngine.is_right_collision(self, inanimate_object, is_collision, time),

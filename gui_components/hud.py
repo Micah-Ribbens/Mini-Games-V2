@@ -10,10 +10,13 @@ class HUD(Component):
     other_fields = []
     high_score_field = None
     components = []
+    rows = None
+    columns = None
 
     def __init__(self, number_of_points_fields, other_fields, length, height, rows, columns):
         self.player_points_fields = []
         self.high_score_field = TextBox("", 28, pleasing_green, white, True)
+        self.rows, self.columns = rows, columns
 
         colors = [blue, red, black, orange, purple, yellow]
 
@@ -22,8 +25,7 @@ class HUD(Component):
 
         self.components = other_fields + self.player_points_fields + [self.high_score_field]
 
-        grid = Grid(Dimensions(0, 0, length, height), rows, columns)
-        grid.turn_into_grid(self.components, None, None)
+        self.set_dimensions(0, 0, length, height)
 
     def update(self, player_points, high_score):
         for x in range(len(player_points)):
@@ -34,3 +36,7 @@ class HUD(Component):
     def render(self):
         for component in self.components:
             component.render()
+
+    def set_dimensions(self, left_edge, top_edge, length, height):
+        grid = Grid(Dimensions(left_edge, top_edge, length, height), self.rows, self.columns)
+        grid.turn_into_grid(self.components, None, None)

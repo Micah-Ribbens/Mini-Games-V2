@@ -35,11 +35,11 @@ class NoInternetGameScreen(Screen):
 
     def __init__(self):
         super().__init__("games/no_internet_game/images/background.png")
-        # self.spawn_random_enemy()
-        #
-        # file_reader = FileReader("high_scores.txt")
-        # self.high_score = file_reader.get_int("high_score")
-    #
+        self.spawn_random_enemy()
+
+        file_reader = FileReader("games/no_internet_game/high_scores.txt")
+        self.high_score = file_reader.get_int("high_score")
+
     def request_enemy_spawn(self):
         is_double_tree = len(self.enemies) >= 2 and self.enemies[1].height == self.second_tree_height
 

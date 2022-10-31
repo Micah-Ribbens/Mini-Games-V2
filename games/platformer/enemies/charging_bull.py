@@ -18,6 +18,7 @@ class ChargingBull(Enemy):
     acceleration_path = None
     current_velocity = 0
     is_charging = False
+    speed_decrease_multiplier_when_in_air = 3
 
     def __init__(self, damage, hit_points, platform):
         """Initializes the object"""
@@ -36,7 +37,13 @@ class ChargingBull(Enemy):
         GameMovement.run_acceleration(self, self.is_charging, self.acceleration_path)
 
         charging_bull_distance = VelocityCalculator.calculate_distance(self.current_velocity)
+
+        if not self.is_on_platform:
+            charging_bull_distance /= self.speed_decrease_multiplier_when_in_air
+
         self.left_edge += charging_bull_distance if self.is_moving_right else -charging_bull_distance
+
+        self.update_is_on_platform()
 
     def run_player_interactions(self, players):
         """Runs the interaction between the ChargingBull and the players (should charge if one gets close)"""
@@ -57,6 +64,9 @@ class ChargingBull(Enemy):
 
         if is_left_collision or is_right_collision:
             self.acceleration_path.current_time = self.time_to_get_to_max_velocity / 2
+
+        if not is_left_collision and not is_right_collision:
+            self.update_top_collision_data(inanimate_object, time)
 
         if is_left_collision:
             self.is_moving_right = False

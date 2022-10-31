@@ -1,12 +1,14 @@
 import random
 from base.dimensions import Dimensions
 from base.engines import CollisionsEngine
+from base.file_reader import FileReader
 from base.history_keeper import HistoryKeeper
+from base.lines import Point
+from base.paths import SimplePath
 from base.utility_functions import is_within_screen
 from base.velocity_calculator import VelocityCalculator
 from game_dependencies.platformer.generator import Generator
 from game_dependencies.platformer.gravity_engine import GravityEngine
-from game_dependencies.platformer.platformer_variables import side_scrolling_start_distance
 from games.platformer.inanimate_objects.platform import Platform
 from games.platformer.players.player import Player
 from games.platformer.enemies.charging_bull import ChargingBull
@@ -14,8 +16,10 @@ from games.platformer.enemies.straight_ninja import StraightEnemy
 from games.platformer.enemies.bouncy_ninja import BouncyEnemy
 from gui_components.grid import Grid
 from game_dependencies.platformer.health_bar import HealthBar
+from gui_components.hud import HUD
 from gui_components.screen import Screen
 from base.important_variables import *
+from game_dependencies.platformer.platformer_variables import *
 from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectile
 
 
@@ -32,12 +36,29 @@ class PlatformerScreen(Screen):
     rightmost_platform = None
     generator = None
 
+    # Modifiable Numbers
+    health_grid_length = VelocityCalculator.get_measurement(screen_length, 25)
+    health_grid_height = VelocityCalculator.get_measurement(screen_height, 10)
+
+    hud_length = screen_length - health_grid_length
+    hud_height = VelocityCalculator.get_measurement(screen_height, 6)
+    hud = HUD(1, [], hud_length, hud_height, 1, None)
+
+    # Scoring
+    player_score = 0
+    high_score = 0
+    score_to_difficulty = SimplePath(Point(0, 50), [Point(1000, 70), Point(2500, 90), Point(5000, 100),
+                                                    Point(float("inf"), 100)])
+
     def __init__(self):
         """Initializes the object"""
 
         super().__init__("games/platformer/images/background_faded.png")
 
-        health_grid = Grid(Dimensions(0, 0, screen_length * .25, screen_height * .1), 2, 2)
+        file_reader = FileReader("games\\platformer\\high_scores.txt")
+        self.high_score = int(file_reader.get_float_list("high_score")[0])
+
+        health_grid = Grid(Dimensions(0, 0, self.health_grid_length, self.health_grid_height), 2, 2)
         self.players = [Player(KEY_A, KEY_D, KEY_W, KEY_S, KEY_F)]
         self.setup_enemies_and_platforms()
         self.gravity_engine = GravityEngine(self.players, self.players[0].jumping_path.acceleration)
@@ -52,6 +73,7 @@ class PlatformerScreen(Screen):
 
         health_grid.turn_into_grid(self.player_health_bars, None, None)
         self.generator = Generator(self.players[0])
+        self.hud.set_dimensions(health_grid.dimensions.right_edge, 0, self.hud_length, self.hud_height)
 
     def setup_enemies_and_platforms(self):
         """Creates the enemies and platforms of the game for starting out"""
@@ -78,6 +100,8 @@ class PlatformerScreen(Screen):
     def run(self):
         """Runs all the code necessary in order for the platformer to work"""
 
+        self.high_score = max(self.player_score, self.high_score)
+        self.hud.update([self.player_score], self.high_score)
         self.gravity_engine.run()
         for player in self.players:
             # Have to do this every cycle so the player is realisticly affected by gravity every cycle
@@ -108,17 +132,20 @@ class PlatformerScreen(Screen):
         """Runs all the code for generating platforms"""
 
         if self.rightmost_platform.right_edge <= screen_length:
-            new_platform = self.generator.generate_platform(self.rightmost_platform, 50)
+            difficulty = self.score_to_difficulty.get_y_coordinate(self.player_score)
+            new_platform = self.generator.generate_platform(self.rightmost_platform, difficulty)
             self.platforms.append(new_platform)
-            self.enemies.append(self.get_random_enemy(new_platform))
+            new_enemy = self.get_random_enemy(new_platform)
+            self.enemies.append(new_enemy)
             self.update_rightmost_platform()
+            self.gravity_engine.add_game_objects([new_enemy])
 
     def get_random_enemy(self, platform):
         """returns: Enemy; a random enemy"""
 
         enemy_types = [StraightEnemy, ChargingBull, BouncyEnemy]
         enemy_type = random.choice(enemy_types)
-        return enemy_type(10, 100, platform)
+        return ChargingBull(10, 20, platform)
 
     def run_side_scrolling(self):
         """Makes the screen side scroll based off the player who is the farthest behind"""
@@ -126,7 +153,6 @@ class PlatformerScreen(Screen):
         # First the players are sorted by the smallest left_edge and then the smallest player is taken
         farthest_back_player = list(sorted(self.players, key=lambda player: player.left_edge))[0]
         shortest_distance = farthest_back_player.right_edge
-
 
         # If the distance of the farthest back player is greater than the distance needed for sidescrolling then
         # All the objects in the game should be side scrolled
@@ -160,9 +186,22 @@ class PlatformerScreen(Screen):
         for enemy in self.enemies:
             enemy.reset_collision_data()
 
+            if enemy.hit_points_left <= 0:
+                self.player_score += score_from_killing_enemy
+
             if enemy.hit_points_left > 0 and enemy.platform.right_edge >= 0:
                 updated_enemies.append(enemy)
                 enemy_components += enemy.get_sub_components()
+
+        updated_platforms = []
+        for platform in self.platforms:
+            if platform.right_edge >= 0:
+                updated_platforms.append(platform)
+
+            else:
+                self.player_score += score_from_passing_platform
+
+        self.platforms = updated_platforms
 
         self.enemies = updated_enemies
         self.game_objects = player_components + enemy_components + self.platforms
@@ -183,6 +222,7 @@ class PlatformerScreen(Screen):
         self.gravity_engine.reset()
         HistoryKeeper.last_objects = {}
         self.frames = 0
+        self.player_score = 0
 
     def run_all_collisions(self):
         """Runs all the collisions between the player, projectiles, and enemies"""
@@ -260,6 +300,13 @@ class PlatformerScreen(Screen):
                 # TODO figure out why needs_dimensions does not work
                 HistoryKeeper.add(component, component.name, needs_deepcopy=True)
 
+    def run_on_close(self):
+        """Runs what should happen when the game is closed (save the high scores)"""
+
+        file = open("games/platformer/high_scores.txt", "w+")
+        file.write(f"high_scores:[{self.high_score}]")
+        file.close()
+
     def get_components(self):
         """returns: Component[]; all the components that should be rendered"""
 
@@ -267,7 +314,7 @@ class PlatformerScreen(Screen):
         for game_object in self.players + self.enemies:
             components += game_object.get_components()
 
-        return components + self.player_health_bars + self.platforms
+        return [self.hud] + components + self.player_health_bars + self.platforms
 
     # HELPER METHODS FOR COLLISIONS; Since they all have a unique length I can just use the lengths here
     def is_enemy(self, game_object):
