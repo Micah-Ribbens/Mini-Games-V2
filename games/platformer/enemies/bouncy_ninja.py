@@ -9,7 +9,7 @@ class BouncyEnemy(StraightEnemy):
     def __init__(self, damage, hit_points, platform):
         """Initializes the object"""
 
-        super().__init__(damage, hit_points, platform, "games/platformer/images/bouncy_tank.png")
+        super().__init__(damage, hit_points, platform, "games/platformer/images/bouncy_tank")
         self.weapon = BouncyProjectileThrower(lambda: False, self)
 
     @property

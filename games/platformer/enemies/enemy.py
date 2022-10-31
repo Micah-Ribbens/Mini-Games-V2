@@ -2,6 +2,7 @@ import abc
 
 from games.platformer.weapons.weapon_user import WeaponUser
 from game_dependencies.platformer.health_bar import HealthBar
+from pygame_library.utility_functions import load_and_transform_image
 
 
 class Enemy(WeaponUser, abc.ABC):
@@ -14,12 +15,13 @@ class Enemy(WeaponUser, abc.ABC):
     health_bar = None
     object_type = "Enemy"
 
-    def __init__(self, damage, hit_points, platform, path_to_image):
+    def __init__(self, damage, hit_points, platform, base_path_to_image):
         """Initializes the object"""
+
+        super().__init__(base_path_to_image)
 
         self.damage, self.platform = damage, platform
         self.total_hit_points, self.hit_points_left = hit_points, hit_points
-        super().__init__(path_to_image)
         self.health_bar = HealthBar(self)
         self.sub_components = [self]
         self.components = [self, self.health_bar]

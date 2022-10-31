@@ -68,7 +68,7 @@ class Player(Component):
         self.turret.number_set_dimensions(self.right_edge, self.vertical_midpoint, self.turret_length, self.turret_height)
         self.is_facing_right, self.player_number = is_facing_right, player_number
 
-        transformation_paths = [f"games/bird_shooter/images/player{player_number}_", "games/bird_shooter/images/stunned_"]
+        transformation_paths = [f"games/bird_shooter/images/player{player_number}", "games/bird_shooter/images/stunned"]
         other_paths = [f"games/bird_shooter/images/beak.png", f"games/bird_shooter/images/beak_stunned.png", f"games/bird_shooter/images/enemy_eye.png"]
 
         for image_path in other_paths:

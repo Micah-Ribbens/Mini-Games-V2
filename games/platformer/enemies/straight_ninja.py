@@ -17,10 +17,10 @@ class StraightEnemy(Enemy):
     is_gone = None
 
     # By default the Straight Enemy has this action_path, but the Bouncy Enemy has a different action_path
-    def __init__(self, damage, hit_points, platform, path_to_image="games/platformer/images/straight_tank.png"):
+    def __init__(self, damage, hit_points, platform, base_image_path="games/platformer/images/straight_tank"):
         """Initializes the object"""
 
-        super().__init__(damage, hit_points, platform, path_to_image)
+        super().__init__(damage, hit_points, platform, base_image_path)
         self.number_set_dimensions(platform.left_edge, platform.top_edge - self.height, self.length, self.height)
 
         top_edge = platform.top_edge - self.height

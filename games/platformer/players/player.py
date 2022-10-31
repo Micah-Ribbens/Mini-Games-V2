@@ -60,7 +60,7 @@ class Player(WeaponUser):
     def __init__(self, left_key, right_key, jump_key, down_key, attack_key):
         """Initializes the object"""
 
-        super().__init__("games/platformer/images/player.png")
+        super().__init__("games/platformer/images/player")
 
         self.left_key, self.right_key, self.jump_key = left_key, right_key, jump_key
         self.down_key, self.attack_key = down_key, attack_key
@@ -80,6 +80,9 @@ class Player(WeaponUser):
 
     def run(self):
         """Runs all the code that is necessary for the player to work properly"""
+
+        self.is_facing_right = True if key_is_pressed(self.right_key) else self.is_facing_right
+        self.is_facing_right = False if key_is_pressed(self.left_key) else self.is_facing_right
 
         self.weapon.run()
         self.jumping_path.run(False, False)
@@ -102,9 +105,6 @@ class Player(WeaponUser):
             self.update_acceleration_path()
             self.deceleration_path.reset()
 
-            # Should change the 'is_facing_right' based on player input only if the player is not decelerating, so they can't move
-            self.is_facing_right = False if key_is_hit(self.left_key) and self.can_move_left else self.is_facing_right
-            self.is_facing_right = True if key_is_hit(self.right_key) and self.can_move_right else self.is_facing_right
 
         elif self.can_decelerate():
             self.deceleration_path.run(False, False, is_changing_coordinates=False)
@@ -163,7 +163,6 @@ class Player(WeaponUser):
 
         self.deceleration_path.initial_distance = self.left_edge
         self.deceleration_path.initial_velocity = self.current_velocity if is_moving_right else -self.current_velocity
-        self.is_facing_right = is_moving_right
 
         # If the player is not at maximum velocity it shouldn't take as long to decelerate
         fraction_of_max_velocity = self.current_velocity / self.max_velocity
@@ -248,8 +247,14 @@ class Player(WeaponUser):
         player_is_beyond_screen_left = self.left_edge <= 0
         player_is_beyond_screen_right = self.right_edge >= screen_length
 
-        self.can_move_left = not self.right_collision_data[0] and not player_is_beyond_screen_left
-        self.can_move_right = not self.left_collision_data[0] and not player_is_beyond_screen_right
+        # The deceleration must be going left to stop the player from moving right and vice versa
+        deceleration_is_rightwards = self.deceleration_path.acceleration < 0
+
+        is_decelerating_rightwards = not self.deceleration_path.has_finished() and deceleration_is_rightwards
+        is_decelerating_leftwards = not self.deceleration_path.has_finished() and not deceleration_is_rightwards
+
+        self.can_move_left = not self.right_collision_data[0] and not player_is_beyond_screen_left and not is_decelerating_rightwards
+        self.can_move_right = not self.left_collision_data[0] and not player_is_beyond_screen_right and not is_decelerating_leftwards
 
         # Setting the player's x coordinate if the any of the above conditions were met (collided with platform or beyond screen)
         self.change_attribute_if(player_is_beyond_screen_left, self.set_left_edge, 0)

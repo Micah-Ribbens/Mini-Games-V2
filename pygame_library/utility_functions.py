@@ -99,9 +99,16 @@ def get_time_passed(start_time):
     return time.time() - start_time
 
 def load_and_transform_image(image_path):
-    base_image = pygame.image.load(f"{image_path}right.png").convert_alpha()
+    base_image = pygame.image.load(f"{image_path}_right.png").convert_alpha()
     transformed_image = pygame.transform.flip(base_image, True, False)
 
-    images[f"{image_path}right.png"] = base_image
-    images[f"{image_path}left.png"] = transformed_image
+    images[f"{image_path}_right.png"] = base_image
+    images[f"{image_path}_left.png"] = transformed_image
 
+
+def get_direction_path_to_image(base_image_path, direction_is_right, additional_path_after_direction):
+    """returns: String; the path to the image that includes direction"""
+
+    direction_image_path = "right" if direction_is_right else "left"
+
+    return f"{base_image_path}_{direction_image_path}{additional_path_after_direction}.png"

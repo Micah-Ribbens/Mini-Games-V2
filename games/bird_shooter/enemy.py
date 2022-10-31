@@ -23,7 +23,7 @@ class Enemy(Component):
 
     def __init__(self):
         super().__init__("")
-        load_and_transform_image("games/bird_shooter/images/enemy_")
+        load_and_transform_image("games/bird_shooter/images/enemy")
         self.center()
 
         self.left_eye.length, self.left_eye.height = self.eye_size

@@ -4,6 +4,7 @@ from gui_components.component import Component
 from base.engines import CollisionsEngine
 from base.important_variables import screen_length
 from base.velocity_calculator import VelocityCalculator
+from pygame_library.utility_functions import load_and_transform_image, get_direction_path_to_image
 
 
 class WeaponUser(Component):
@@ -20,6 +21,7 @@ class WeaponUser(Component):
     is_on_platform = True
     sub_components = []
     is_addable = True
+    base_path_to_image = ""
 
     # Collision Data
     left_collision_data = []
@@ -28,10 +30,13 @@ class WeaponUser(Component):
     bottom_collision_data = []
     components = []
 
-    def __init__(self, path_to_image):
+    def __init__(self, base_path_to_image):
         """Initializes the object"""
 
-        super().__init__(path_to_image)
+        load_and_transform_image(base_path_to_image)
+        super().__init__(f"{base_path_to_image}_left.png")
+        self.base_path_to_image = base_path_to_image
+
         self.sub_components = [self]
         self.components = []
 
@@ -131,6 +136,12 @@ class WeaponUser(Component):
         # Some Enemies don't have weapons, so an error will be thrown if we try to call the weapon's update_for_side_scrolling()
         if self.weapon is not None:
             self.weapon.update_for_side_scrolling(amount)
+
+    def render(self):
+        """Renders the object onto the screen"""
+
+        self.path_to_image = get_direction_path_to_image(self.base_path_to_image, self.is_facing_right, "")
+        super().render()
 
     def get_components(self):
         """returns: Component[]; all the components that should be rendered and ran"""

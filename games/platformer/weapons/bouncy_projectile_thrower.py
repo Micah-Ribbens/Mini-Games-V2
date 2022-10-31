@@ -1,5 +1,7 @@
 from base.engines import CollisionsEngine
+from base.important_variables import screen_length, screen_height
 from base.quadratic_equations import PhysicsPath
+from base.velocity_calculator import VelocityCalculator
 from games.platformer.weapons.projectile_thrower import Projectile, ProjectileThrower
 
 
@@ -7,6 +9,8 @@ class BouncyProjectile(Projectile):
     """A projectile that bounces"""
 
     projectile_path = None
+    size = VelocityCalculator.get_measurement(screen_length, 2.5)
+    length, height = size, size
 
     def __init__(self, left_edge, top_edge, is_moving_right, projectile_height, user_velocity, object_type, total_hit_points, user, path_to_image):
         """Initializes the object"""
@@ -57,9 +61,9 @@ class BouncyProjectileThrower(ProjectileThrower):
     def run_upon_activation(self):
         """Runs the code that should be completed when the code decides to use this weapon"""
 
-        self.sub_components.append(BouncyProjectile(self.get_weapon_left_edge(Projectile.size, self.user.should_shoot_right),
+        self.sub_components.append(BouncyProjectile(self.get_weapon_left_edge(Projectile.length, self.user.should_shoot_right),
                                                     self.user.projectile_top_edge, self.user.should_shoot_right,
                                                     self.user.projectile_height, self.user.projectile_velocity, self.object_type,
-                                                    self.total_hit_points, self.user, "games/platformer/images/player_bouncy_projectile.png"))
+                                                    self.total_hit_points, self.user, f"games/platformer/images/{self.user_type}_bouncy_projectile"))
 
 

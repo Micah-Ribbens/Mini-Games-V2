@@ -5,13 +5,14 @@ from base.velocity_calculator import VelocityCalculator
 from games.platformer.weapons.weapon import Weapon
 from base.engines import CollisionsEngine
 from gui_components.component import Component
+from base.utility_functions import load_and_transform_image, get_direction_path_to_image
 
 
 class Projectile(Component):
     """A projectile that the projectile thrower uses"""
 
-    size = VelocityCalculator.get_measurement(screen_height, 6)
-    length, height = size, size
+    length = VelocityCalculator.get_measurement(screen_length, 3)
+    height = VelocityCalculator.get_measurement(screen_height, 4)
     is_moving_right = False
     velocity = 0
     is_runnable = False
@@ -20,12 +21,16 @@ class Projectile(Component):
     total_hit_points = 0
     hit_points_left = 0
     user = None
+    base_path_to_image = ""
 
-    def __init__(self, left_edge, top_edge, is_moving_right, user_max_velocity, object_type, total_hit_points, user, path_to_image):
+    def __init__(self, left_edge, top_edge, is_moving_right, user_max_velocity, object_type, total_hit_points, user, base_path_to_image):
         """Initializes the object"""
 
-        super().__init__(path_to_image)
-        self.number_set_dimensions(left_edge, top_edge, self.size, self.size)
+        self.base_path_to_image = base_path_to_image
+        load_and_transform_image(base_path_to_image)
+        super().__init__(f"{base_path_to_image}_right.png")
+
+        self.number_set_dimensions(left_edge, top_edge, self.length, self.height)
 
         self.total_hit_points, self.hit_points_left = total_hit_points, total_hit_points
         self.is_moving_right = is_moving_right
@@ -43,20 +48,25 @@ class Projectile(Component):
 
         self.hit_points_left -= amount
 
-    # def render(self):
-    #     print("RENDER")
+    def render(self):
+        """Renders the projectile onto the screen"""
+
+        self.path_to_image = get_direction_path_to_image(self.base_path_to_image, self.is_moving_right, "")
+        super().render()
 
 
 class ProjectileThrower(Weapon):
     """A weapon that is used for throwing projectiles"""
 
     deleted_sub_components_indexes = []
+    user_type = ""  # Stores the information for loading in images (either an enemy or player projectile)
 
     def __init__(self, use_action, user):
         """Initializes the object"""
 
         super().__init__(10, 10, use_action, user, .2)
         self.sub_components = []
+        self.user_type = "enemy" if user.object_type == "Enemy" else "player"
 
     def run(self):
         """Runs all the code necessary in order for this object to work"""
@@ -83,10 +93,10 @@ class ProjectileThrower(Weapon):
     def run_upon_activation(self):
         """Runs the code that should be completed when the code decides to use this weapon"""
 
-        self.sub_components.append(Projectile(self.get_weapon_left_edge(Projectile.size, self.user.should_shoot_right),
-                                   self.user.projectile_top_edge - Projectile.size, self.user.should_shoot_right,
+        self.sub_components.append(Projectile(self.get_weapon_left_edge(Projectile.length, self.user.should_shoot_right),
+                                   self.user.projectile_top_edge - Projectile.height, self.user.should_shoot_right,
                                    self.user.projectile_velocity, self.object_type, self.total_hit_points, self.user,
-                                   "games/platformer/images/player_projectile.png"))
+                                   f"games/platformer/images/{self.user_type}_projectile"))
 
     def run_enemy_collision(self, user, index_of_sub_component):
         """Runs the code for figuring out what to do when one of the projectiles hits an enemy or an enemy's projectile"""

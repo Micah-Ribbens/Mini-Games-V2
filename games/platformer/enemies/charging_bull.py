@@ -22,7 +22,7 @@ class ChargingBull(Enemy):
     def __init__(self, damage, hit_points, platform):
         """Initializes the object"""
 
-        super().__init__(damage, hit_points, platform, "games/platformer/images/charging_bull.png")
+        super().__init__(damage, hit_points, platform, "games/platformer/images/charging_bull")
         self.number_set_dimensions(platform.right_edge - self.length,
                                    platform.top_edge - self.height, self.length, self.height)
 
