@@ -145,7 +145,7 @@ class PlatformerScreen(Screen):
 
         enemy_types = [StraightEnemy, ChargingBull, BouncyEnemy]
         enemy_type = random.choice(enemy_types)
-        return ChargingBull(10, 20, platform)
+        return enemy_type(10, 20, platform)
 
     def run_side_scrolling(self):
         """Makes the screen side scroll based off the player who is the farthest behind"""
