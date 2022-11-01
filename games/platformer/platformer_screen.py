@@ -22,7 +22,7 @@ from base.important_variables import *
 from game_dependencies.platformer.platformer_variables import *
 from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectile
 
-
+# TODO FIGURE OUT WHY SOMETIMES THERE ARE NO ENEMIES ON PLATFORM
 class PlatformerScreen(Screen):
     """A basic platformer game"""
     players = []
@@ -35,6 +35,7 @@ class PlatformerScreen(Screen):
     last_time = 0  # The last that objects were added to the History Keeper
     rightmost_platform = None
     generator = None
+    number_of_platforms_generated = 0
 
     # Modifiable Numbers
     health_grid_length = VelocityCalculator.get_measurement(screen_length, 25)
@@ -108,6 +109,7 @@ class PlatformerScreen(Screen):
             if player.platform_is_on is not None and not CollisionsEngine.is_collision(player, player.platform_is_on):
                 player.set_is_on_platform(False, None)
 
+            # So the player is moves before side scrolling happens
             player.run()
 
         if self.frames % 1 == 0 and self.frames > 1:
@@ -141,12 +143,14 @@ class PlatformerScreen(Screen):
             self.enemies.append(new_enemy)
             self.update_rightmost_platform()
             self.gravity_engine.add_game_objects([new_enemy])
+            self.number_of_platforms_generated += 1
 
     def get_random_enemy(self, platform):
         """returns: Enemy; a random enemy"""
 
         enemy_types = [StraightEnemy, ChargingBull, BouncyEnemy]
         enemy_type = random.choice(enemy_types)
+
         return enemy_type(10, 20, platform)
 
     def run_side_scrolling(self):
@@ -225,6 +229,7 @@ class PlatformerScreen(Screen):
         HistoryKeeper.last_objects = {}
         self.frames = 0
         self.player_score = 0
+        self.number_of_platforms_generated = 0
 
     def run_all_collisions(self):
         """Runs all the collisions between the player, projectiles, and enemies"""

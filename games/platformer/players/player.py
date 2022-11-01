@@ -42,6 +42,8 @@ class Player(WeaponUser):
     gravity_engine = None
     invincibility_event = None
     platform_is_on = None
+
+    # So the player can be run and side scrolling can be done before the rendering (otherwise it doesn't look smooth)
     is_runnable = False
 
     # Booleans
@@ -105,7 +107,6 @@ class Player(WeaponUser):
             # TODO figure out what this does
             self.update_acceleration_path()
             self.deceleration_path.reset()
-
 
         elif self.can_decelerate():
             self.deceleration_path.run(False, False, is_changing_coordinates=False)
@@ -380,14 +381,6 @@ class Player(WeaponUser):
         second_falling_time = solve_quadratic(1 / 2 * gravity, 0, -second_falling_distance)[1]
 
         return f"total time {first_falling_time + second_falling_time + time_to_vertex_of_jump} first falling time {first_falling_time} second falling time {second_falling_time}"
-
-    def render(self):
-        """Renders the player onto the screen"""
-
-        if self.right_edge >= side_scrolling_start_distance:
-            self.left_edge = side_scrolling_start_distance - self.length
-
-        super().render()
 
 
 

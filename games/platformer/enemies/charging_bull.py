@@ -1,5 +1,6 @@
 from base.engines import CollisionsEngine
 from base.game_movement import GameMovement
+from base.history_keeper import HistoryKeeper
 from base.important_variables import screen_length, screen_height
 from base.quadratic_equations import PhysicsPath
 from base.velocity_calculator import VelocityCalculator
@@ -43,7 +44,9 @@ class ChargingBull(Enemy):
 
         self.left_edge += charging_bull_distance if self.is_moving_right else -charging_bull_distance
 
-        self.update_is_on_platform()
+        # If the HistoryKeeper has no data on this object then it is impossible to see if there are any collisions with it
+        if HistoryKeeper.get_last(self) is not None:
+            self.update_is_on_platform()
 
     def run_player_interactions(self, players):
         """Runs the interaction between the ChargingBull and the players (should charge if one gets close)"""
@@ -67,6 +70,9 @@ class ChargingBull(Enemy):
 
         if not is_left_collision and not is_right_collision:
             self.update_top_collision_data(inanimate_object, time)
+
+        if not CollisionsEngine.is_top_collision(self, inanimate_object, True, time):
+            CollisionsEngine.is_top_collision(self, inanimate_object, True, time)
 
         if is_left_collision:
             self.is_moving_right = False
