@@ -108,6 +108,8 @@ class PlatformerScreen(Screen):
             if player.platform_is_on is not None and not CollisionsEngine.is_collision(player, player.platform_is_on):
                 player.set_is_on_platform(False, None)
 
+            player.run()
+
         if self.frames % 1 == 0 and self.frames > 1:
             self.update_game_objects()
             self.run_all_collisions()
@@ -151,7 +153,7 @@ class PlatformerScreen(Screen):
         """Makes the screen side scroll based off the player who is the farthest behind"""
 
         # First the players are sorted by the smallest left_edge and then the smallest player is taken
-        farthest_back_player = list(sorted(self.players, key=lambda player: player.left_edge))[0]
+        farthest_back_player = list(sorted(self.players, key=lambda player: player.right_edge))[0]
         shortest_distance = farthest_back_player.right_edge
 
         # If the distance of the farthest back player is greater than the distance needed for sidescrolling then

@@ -42,6 +42,7 @@ class Player(WeaponUser):
     gravity_engine = None
     invincibility_event = None
     platform_is_on = None
+    is_runnable = False
 
     # Booleans
     can_move_down = False
@@ -379,6 +380,14 @@ class Player(WeaponUser):
         second_falling_time = solve_quadratic(1 / 2 * gravity, 0, -second_falling_distance)[1]
 
         return f"total time {first_falling_time + second_falling_time + time_to_vertex_of_jump} first falling time {first_falling_time} second falling time {second_falling_time}"
+
+    def render(self):
+        """Renders the player onto the screen"""
+
+        if self.right_edge >= side_scrolling_start_distance:
+            self.left_edge = side_scrolling_start_distance - self.length
+
+        super().render()
 
 
 

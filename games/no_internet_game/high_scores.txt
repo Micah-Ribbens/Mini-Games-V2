@@ -1,1 +1,1 @@
-high_score:300
+high_score:400
