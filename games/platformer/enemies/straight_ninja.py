@@ -4,7 +4,7 @@ from base.paths import VelocityPath, ActionPath
 from base.velocity_calculator import VelocityCalculator
 from games.platformer.enemies.enemy import Enemy
 from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
-from games.platformer.weapons.projectile_thrower import Projectile, ProjectileThrower
+from games.platformer.weapons.straight_projectile_thrower import StraightProjectile, StraightProjectileThrower
 
 
 class StraightEnemy(Enemy):
@@ -33,7 +33,8 @@ class StraightEnemy(Enemy):
         self.action_path.add_point(Point(platform.right_edge - self.length, top_edge), self.shoot_star, wait_time)
 
         self.action_path.is_unending = True
-        self.weapon = ProjectileThrower(lambda: False, self)
+        self.weapon = StraightProjectileThrower(lambda: False, self)
+        self.weapon.has_limited_ammo = False
 
     def update_for_side_scrolling(self, amount):
         """Updates the enemy after side scrolling,so nothing funky happens (like being on an invisible platform)"""
@@ -61,12 +62,7 @@ class StraightEnemy(Enemy):
         """Shoots a star"""
 
         # Casting to int prevents a rounding error (off by .000000001 or less)
-        self.is_facing_right = int(self.left_edge) == int(self.platform.left_edge)
-
-        # Sometimes there is a bad lag spike, so the enemy won't stop meaning then I have to check if the enemy
-        # Is now moving right (slope of the left edge line is increasing means the left edges are increasing)
-        if int(self.left_edge) != int(self.platform.left_edge) and int(self.right_edge) != int(self.platform.right_edge):
-            self.is_facing_right = self.action_path.left_edge_lines[self.action_path.get_index_of_line(self.action_path.total_time)].slope_is_positive()
+        self.is_facing_right = not self.is_facing_right
 
         self.weapon.run_upon_activation()
 

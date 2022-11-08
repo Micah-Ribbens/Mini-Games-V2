@@ -1,7 +1,9 @@
+from fractions import Fraction
 from math import sqrt
 
 from base.important_variables import *
 from pygame_library.utility_functions import *
+import random
 
 
 def key_is_pressed(key):
@@ -134,3 +136,15 @@ def get_previous_index(current_index, max_index):
 
     prev_index = current_index - 1
     return prev_index if prev_index >= 0 else max_index
+
+def is_random_chance(probability: Fraction):
+    """ summary: uses the probability for the random chance (for instance if the probability is 7/10 then 7 out of 10
+        times it will return True and the other 3 times it will return False)
+
+        params:
+            probability: Fraction; the probability this function will return True
+
+        returns: boolean; if the random number between 1-probability.denominator is >= probability.numerator
+    """
+
+    return random.randint(probability.numerator, probability.denominator) <= probability.numerator

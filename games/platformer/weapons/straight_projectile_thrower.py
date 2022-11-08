@@ -6,9 +6,10 @@ from games.platformer.weapons.weapon import Weapon
 from base.engines import CollisionsEngine
 from gui_components.component import Component
 from base.utility_functions import load_and_transform_image, get_direction_path_to_image
+from game_dependencies.platformer.platformer_variables import base_weapon_ammo
 
 
-class Projectile(Component):
+class StraightProjectile(Component):
     """A projectile that the projectile thrower uses"""
 
     length = VelocityCalculator.get_measurement(screen_length, 3)
@@ -55,11 +56,12 @@ class Projectile(Component):
         super().render()
 
 
-class ProjectileThrower(Weapon):
+class StraightProjectileThrower(Weapon):
     """A weapon that is used for throwing projectiles"""
 
     deleted_sub_components_indexes = []
     user_type = ""  # Stores the information for loading in images (either an enemy or player projectile)
+    weapon_name = "straight thrower"
 
     def __init__(self, use_action, user):
         """Initializes the object"""
@@ -93,10 +95,13 @@ class ProjectileThrower(Weapon):
     def run_upon_activation(self):
         """Runs the code that should be completed when the code decides to use this weapon"""
 
-        self.sub_components.append(Projectile(self.get_weapon_left_edge(Projectile.length, self.user.should_shoot_right),
-                                   self.user.projectile_top_edge - Projectile.height, self.user.should_shoot_right,
-                                   self.user.projectile_velocity, self.object_type, self.total_hit_points, self.user,
-                                   f"games/platformer/images/{self.user_type}_projectile"))
+        if self.ammo_left > 0 or not self.has_limited_ammo:
+            self.sub_components.append(StraightProjectile(self.get_weapon_left_edge(StraightProjectile.length, self.user.should_shoot_right),
+                                       self.user.projectile_top_edge - StraightProjectile.height, self.user.should_shoot_right,
+                                       self.user.projectile_velocity, self.object_type, self.total_hit_points, self.user,
+                                       f"games/platformer/images/{self.user_type}_projectile"))
+
+            self.ammo_left -= 1
 
     def run_enemy_collision(self, user, index_of_sub_component):
         """Runs the code for figuring out what to do when one of the projectiles hits an enemy or an enemy's projectile"""
@@ -117,6 +122,7 @@ class ProjectileThrower(Weapon):
         """Resets everything back to the start of the game"""
 
         self.sub_components = []
+        self.ammo_left = base_weapon_ammo
 
 
 

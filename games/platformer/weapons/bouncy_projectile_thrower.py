@@ -2,10 +2,10 @@ from base.engines import CollisionsEngine
 from base.important_variables import screen_length, screen_height
 from base.quadratic_equations import PhysicsPath
 from base.velocity_calculator import VelocityCalculator
-from games.platformer.weapons.projectile_thrower import Projectile, ProjectileThrower
+from games.platformer.weapons.straight_projectile_thrower import StraightProjectile, StraightProjectileThrower
 
 
-class BouncyProjectile(Projectile):
+class BouncyProjectile(StraightProjectile):
     """A projectile that bounces"""
 
     projectile_path = None
@@ -38,8 +38,10 @@ class BouncyProjectile(Projectile):
         self.top_edge = top_edge - self.height
 
 
-class BouncyProjectileThrower(ProjectileThrower):
+class BouncyProjectileThrower(StraightProjectileThrower):
     """A projectile thrower except the projectiles bounce"""
+
+    weapon_name = "bouncy thrower"
 
     def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
         """Runs all the code for figuring ot what to do when one of the projectiles hits an inanimate object (platforms, trees, etc.)"""
@@ -61,9 +63,13 @@ class BouncyProjectileThrower(ProjectileThrower):
     def run_upon_activation(self):
         """Runs the code that should be completed when the code decides to use this weapon"""
 
-        self.sub_components.append(BouncyProjectile(self.get_weapon_left_edge(Projectile.length, self.user.should_shoot_right),
-                                                    self.user.projectile_top_edge, self.user.should_shoot_right,
-                                                    self.user.projectile_height, self.user.projectile_velocity, self.object_type,
-                                                    self.total_hit_points, self.user, f"games/platformer/images/{self.user_type}_bouncy_projectile"))
+        if self.ammo_left > 0 or not self.has_limited_ammo:
+            self.sub_components.append(BouncyProjectile(self.get_weapon_left_edge(StraightProjectile.length, self.user.should_shoot_right),
+                                                        self.user.projectile_top_edge, self.user.should_shoot_right,
+                                                        self.user.projectile_height, self.user.projectile_velocity, self.object_type,
+                                                        self.total_hit_points, self.user, f"games/platformer/images/{self.user_type}_bouncy_projectile"))
+            self.ammo_left -= 1
+
+
 
 

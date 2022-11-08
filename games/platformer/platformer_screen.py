@@ -1,4 +1,6 @@
 import random
+
+from base.colors import *
 from base.dimensions import Dimensions
 from base.engines import CollisionsEngine
 from base.file_reader import FileReader
@@ -20,9 +22,17 @@ from gui_components.hud import HUD
 from gui_components.screen import Screen
 from base.important_variables import *
 from game_dependencies.platformer.platformer_variables import *
-from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectile
+from games.platformer.powerups.ammo_powerup import AmmoPowerup
+from games.platformer.powerups.heart_powerup import HeartPowerup
+from games.platformer.powerups.straight_thrower_powerup import StraightProjectilePowerup
+from games.platformer.powerups.bouncy_projectile_powerup import BouncyProjectilePowerup
+from games.platformer.powerups.powerup import Powerup
+from base.utility_functions import *
 
 # TODO FIGURE OUT WHY SOMETIMES THERE ARE NO ENEMIES ON PLATFORM
+from gui_components.text_box import TextBox
+
+
 class PlatformerScreen(Screen):
     """A basic platformer game"""
     players = []
@@ -43,7 +53,9 @@ class PlatformerScreen(Screen):
 
     hud_length = screen_length - health_grid_length
     hud_height = VelocityCalculator.get_measurement(screen_height, 6)
-    hud = HUD(1, [], hud_length, hud_height, 1, None)
+    ammo_field = TextBox("Ammo Left:", 20, white, brown, True)
+    hud = HUD(1, [ammo_field], hud_length, hud_height, 1, None)
+    powerups = []
 
     # Scoring
     player_score = 0
@@ -102,6 +114,7 @@ class PlatformerScreen(Screen):
         """Runs all the code necessary in order for the platformer to work"""
 
         self.high_score = max(self.player_score, self.high_score)
+        self.ammo_field.text = f"Ammo Left: {self.players[0].ammo_left}"
         self.hud.update([self.player_score], self.high_score)
         self.gravity_engine.run()
         for player in self.players:
@@ -127,6 +140,7 @@ class PlatformerScreen(Screen):
         for enemy in self.enemies:
             enemy.run_player_interactions(self.players)
 
+        self.powerups = list(filter(lambda item: item.right_edge >= 0, self.powerups))
         self.frames += 1
 
         self.run_side_scrolling()
@@ -144,6 +158,7 @@ class PlatformerScreen(Screen):
             self.update_rightmost_platform()
             self.gravity_engine.add_game_objects([new_enemy])
             self.number_of_platforms_generated += 1
+            self.run_powerup_spawning(new_platform)
 
     def get_random_enemy(self, platform):
         """returns: Enemy; a random enemy"""
@@ -152,6 +167,20 @@ class PlatformerScreen(Screen):
         enemy_type = random.choice(enemy_types)
 
         return enemy_type(10, 20, platform)
+
+    def run_powerup_spawning(self, new_platform):
+        """Runs the spawning of powerups after a platform is generated: a powerup won't spawn everytime"""
+
+        should_generate_powerup = is_random_chance(probability_of_getting_powerup_generated)
+        weapon_powerups = [BouncyProjectilePowerup, StraightProjectilePowerup]
+        non_weapon_powerups = [HeartPowerup, AmmoPowerup]
+        powerup_left_edge, powerup_top_edge = new_platform.horizontal_midpoint, new_platform.top_edge - Powerup.height
+
+        if should_generate_powerup:
+            should_generate_weapon = is_random_chance(weapon_powerup_probability)
+            powerup_class_list = weapon_powerups if should_generate_weapon else non_weapon_powerups
+            powerup_class = random.choice(powerup_class_list)
+            self.powerups.append(powerup_class(powerup_left_edge, powerup_top_edge))
 
     def run_side_scrolling(self):
         """Makes the screen side scroll based off the player who is the farthest behind"""
@@ -168,6 +197,7 @@ class PlatformerScreen(Screen):
             self.side_scroll_objects(side_scrolling_distance, self.players)
             self.side_scroll_objects(side_scrolling_distance, self.enemies)
             self.side_scroll_objects(side_scrolling_distance, self.platforms)
+            self.side_scroll_objects(side_scrolling_distance, self.powerups)
 
     def side_scroll_objects(self, distance, game_objects):
         """Moves all the objects leftwards by the distance specified (side scrolling)"""
@@ -210,7 +240,7 @@ class PlatformerScreen(Screen):
         self.platforms = updated_platforms
 
         self.enemies = updated_enemies
-        self.game_objects = player_components + enemy_components + self.platforms
+        self.game_objects = player_components + enemy_components + self.platforms + self.powerups
 
     def update_rightmost_platform(self):
         """Updates the attribute 'rightmost_platform' so it is actually the rightmost_platform"""
@@ -230,6 +260,7 @@ class PlatformerScreen(Screen):
         self.frames = 0
         self.player_score = 0
         self.number_of_platforms_generated = 0
+        self.powerups = []
 
     def run_all_collisions(self):
         """Runs all the collisions between the player, projectiles, and enemies"""
@@ -257,6 +288,13 @@ class PlatformerScreen(Screen):
 
         self.run_user_weapon_inanimate_collisions(self.is_player_weapon(main_object), self.is_player(main_object), main_object, other_object)
         self.run_user_weapon_inanimate_collisions(self.is_enemy_weapon(main_object), self.is_enemy(main_object), main_object, other_object)
+
+        if self.is_player(main_object) and self.is_powerup(other_object):
+            other_object.run_player_collision(main_object)
+
+            # Removes it from the screen so it is deleted: can't delete here because that would cause issues with modifying
+            # a list while it is being iterated over
+            other_object.left_edge = -1000
 
         if self.is_enemy(main_object) and self.is_player(other_object):
             main_object.run_enemy_collision(other_object, main_object.index)
@@ -304,8 +342,7 @@ class PlatformerScreen(Screen):
         for component in component_list:
             if component.is_addable:
                 component.name = id(component)
-                # TODO figure out why needs_dimensions does not work
-                HistoryKeeper.add(component, component.name, needs_deepcopy=True)
+                HistoryKeeper.add(component, component.name, needs_dimensions_only=True)
 
     def run_on_close(self):
         """Runs what should happen when the game is closed (save the high scores)"""
@@ -321,7 +358,7 @@ class PlatformerScreen(Screen):
         for game_object in self.players + self.enemies:
             components += game_object.get_components()
 
-        return [self.hud] + components + self.player_health_bars + self.platforms
+        return [self.hud] + components + self.player_health_bars + self.platforms + self.powerups
 
     # HELPER METHODS FOR COLLISIONS; Since they all have a unique length I can just use the lengths here
     def is_enemy(self, game_object):
@@ -348,6 +385,11 @@ class PlatformerScreen(Screen):
         """returns: boolean; if the game_object is a platform --> object type would be 'Platform'"""
 
         return len(game_object.object_type) == 8
+
+    def is_powerup(self, game_object):
+        """returns: boolean; if the game_object is a platform --> object type would be 'Platform'"""
+
+        return len(game_object.object_type) == 9
 
 
 

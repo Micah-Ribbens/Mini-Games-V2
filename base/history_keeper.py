@@ -24,8 +24,8 @@ class HistoryKeeper:
             history_keeper_object.name = name
 
         if needs_dimensions_only:
-            added_object = Dimensions(history_keeper_object.left_edge, history_keeper_object.top_edge, history_keeper_object.height, history_keeper_object.length)
-            added_object.name = history_keeper_object.name
+            history_keeper_object = Dimensions(history_keeper_object.left_edge, history_keeper_object.top_edge, history_keeper_object.length, history_keeper_object.height)
+            history_keeper_object.name = name
 
         HistoryKeeper.last_objects[f"{name}{VelocityCalculator.time}"] = history_keeper_object
 

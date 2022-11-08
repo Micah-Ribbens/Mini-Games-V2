@@ -17,8 +17,8 @@ class Generator:
     max_y_change = VelocityCalculator.get_measurement(screen_height, 25)
     min_platform_height = int(VelocityCalculator.get_measurement(screen_height, 10))
     max_platform_height = int(VelocityCalculator.get_measurement(screen_height, 20))
-    min_platform_length = int(VelocityCalculator.get_measurement(screen_length, 30))
-    max_platform_length = int(VelocityCalculator.get_measurement(screen_length, 45))
+    min_platform_length = int(VelocityCalculator.get_measurement(screen_length, 45))
+    max_platform_length = int(VelocityCalculator.get_measurement(screen_length, 55))
     min_distance_accuracy_decrease = .05
     player = None
 

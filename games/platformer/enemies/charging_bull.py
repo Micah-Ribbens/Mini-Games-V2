@@ -45,7 +45,7 @@ class ChargingBull(Enemy):
         self.left_edge += charging_bull_distance if self.is_moving_right else -charging_bull_distance
 
         # If the HistoryKeeper has no data on this object then it is impossible to see if there are any collisions with it
-        if HistoryKeeper.get_last(self) is not None:
+        if HistoryKeeper.get_last(self.name) is not None:
             self.update_is_on_platform()
 
     def run_player_interactions(self, players):
@@ -88,4 +88,6 @@ class ChargingBull(Enemy):
     def hit_by_player(self, player_weapon, index_of_sub_component):
         pass
 
+    def get_sub_components(self):
+        return [self]
 

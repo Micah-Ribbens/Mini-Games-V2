@@ -29,6 +29,7 @@ def _run_game_every_cycle(cycle_time, is_start_time):
     if cycle_time > .15:
         cycle_time = .15
 
+    HistoryKeeper.times.append(VelocityCalculator.time)
     HistoryKeeper.last_time = VelocityCalculator.time
     VelocityCalculator.time = cycle_time + (random() * pow(10, -9))
 

@@ -5,12 +5,14 @@ import abc
 # TODO come back to figuring out what weapons should do
 from base.events import Event, TimedEvent
 from base.utility_functions import key_is_pressed
+from game_dependencies.platformer.platformer_variables import *
 
 
 class Weapon(abc.ABC):
     """Something the user can use to hit enemies or anything else"""
 
-    damage = 10
+    base_damage = 10
+    damage = base_damage
     total_hit_points = 10
     hit_points_left = 0
     use_action = None
@@ -20,6 +22,8 @@ class Weapon(abc.ABC):
     wait_event = None
     object_type = "" # Used for collisions, so the collision code knows the type of an object
     index = 0
+    ammo_left = base_weapon_ammo
+    has_limited_ammo = True
 
     def __init__(self, damage, hit_points, use_action, user, cool_down_time):
         """Initilizes the object"""

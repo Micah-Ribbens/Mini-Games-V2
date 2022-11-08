@@ -11,7 +11,7 @@ from base.history_keeper import HistoryKeeper
 from base.utility_functions import key_is_pressed, solve_quadratic, key_is_hit, key_has_been_released
 from base.velocity_calculator import VelocityCalculator
 from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
-from games.platformer.weapons.projectile_thrower import ProjectileThrower
+from games.platformer.weapons.straight_projectile_thrower import StraightProjectileThrower
 from games.platformer.weapons.sword import Sword
 from game_dependencies.platformer.platformer_variables import *
 from games.platformer.weapons.weapon_user import WeaponUser
@@ -31,6 +31,8 @@ class Player(WeaponUser):
     object_type = "Player"
     length = VelocityCalculator.get_measurement(screen_length, 5)
     height = player_height
+    ammo_left = base_weapon_ammo
+    weapon_class_to_weapon = {}
 
     # Miscellaneous
     jumping_path = None
@@ -77,9 +79,13 @@ class Player(WeaponUser):
 
         self.jumping_event, self.right_event, self.left_event = Event(), Event(), Event()
 
-        self.weapon = ProjectileThrower(lambda: key_is_pressed(self.attack_key), self)
         self.invincibility_event = TimedEvent(1, False)
         self.paths_and_events = [self.jumping_path, self.deceleration_path, self.acceleration_path]
+
+        weapon_data = [lambda: key_is_pressed(self.attack_key), self]
+        self.weapon_class_to_weapon = {StraightProjectileThrower.weapon_name: StraightProjectileThrower(*weapon_data),
+                                       BouncyProjectileThrower.weapon_name: BouncyProjectileThrower(*weapon_data)}
+        self.weapon = self.weapon_class_to_weapon[BouncyProjectileThrower.weapon_name]
 
     def run(self):
         """Runs all the code that is necessary for the player to work properly"""
@@ -88,6 +94,7 @@ class Player(WeaponUser):
         self.is_facing_right = False if key_is_pressed(self.left_key) else self.is_facing_right
 
         self.weapon.run()
+        self.ammo_left = self.weapon.ammo_left
         self.jumping_path.run(False, False)
         self.sub_components = [self] + self.weapon.get_sub_components()
         self.invincibility_event.run(self.invincibility_event.current_time > self.invincibility_event.time_needed, False)
@@ -381,6 +388,38 @@ class Player(WeaponUser):
         second_falling_time = solve_quadratic(1 / 2 * gravity, 0, -second_falling_distance)[1]
 
         return f"total time {first_falling_time + second_falling_time + time_to_vertex_of_jump} first falling time {first_falling_time} second falling time {second_falling_time}"
+
+    # Getters and Setters
+    def increase_ammo(self, amount):
+        """Increases the amount of ammo of the weapon"""
+
+        self.ammo_left += amount
+        self.weapon.ammo_left += amount
+
+    def increase_health(self, amount):
+        """Increases the amount of health the player has"""
+
+        self.hit_points_left += amount
+
+        # The player's current hit points can't increase the total hit points
+        if self.hit_points_left > self.total_hit_points:
+            self.hit_points_left = self.total_hit_points
+
+    def set_weapon(self, weapon_class):
+        """Changes the player's weapon to that weapon (ammo is kept the same)"""
+
+        if self.weapon.weapon_name == weapon_class.weapon_name:
+            self.weapon.damage += damage_increase_from_duplicate_weapon_pickup
+
+        else:
+            self.weapon = self.weapon_class_to_weapon[weapon_class.weapon_name]
+            self.weapon.damage = self.weapon.base_damage
+            self.weapon.ammo_left = self.ammo_left
+
+    def get_ammo_left(self):
+        """returns: int; the amount of ammo the player has left"""
+
+        return self.ammo_left
 
 
 
