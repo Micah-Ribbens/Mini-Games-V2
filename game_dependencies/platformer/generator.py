@@ -7,19 +7,13 @@ from base.paths import SimplePath
 from base.velocity_calculator import VelocityCalculator
 from games.platformer.inanimate_objects.platform import Platform
 from games.platformer.players.player import Player
-from game_dependencies.platformer.platformer_variables import *
+from game_dependencies.platformer.platformer_constants import *
 
 
 class Generator:
     """Generates platforms, enemies, and other things semi-randomly (as long as it is playable for the player and mantains a good difficulty)"""
 
     # Modifiable Numbers
-    max_y_change = VelocityCalculator.get_measurement(screen_height, 25)
-    min_platform_height = int(VelocityCalculator.get_measurement(screen_height, 10))
-    max_platform_height = int(VelocityCalculator.get_measurement(screen_height, 20))
-    min_platform_length = int(VelocityCalculator.get_measurement(screen_length, 45))
-    max_platform_length = int(VelocityCalculator.get_measurement(screen_length, 55))
-    min_distance_accuracy_decrease = .05
     player = None
 
     def __init__(self, player):
@@ -29,18 +23,18 @@ class Generator:
         """returns: Platform; the next platform, which would be after 'last_platform;' uses the difficulty to decide how hard of a jump it should be"""
 
         accuracy = self._get_accuracy(difficulty)
-        new_platform_height = random.randint(int(self.min_platform_height), int(self.max_platform_height))
+        new_platform_height = random.randint(MINIMUM_PLATFORM_HEIGHT, MAXIMUM_PLATFORM_HEIGHT)
 
         topmost_top_edge = self.player.get_topmost_top_edge(last_platform, accuracy, self._get_accuracy(1))
         bottommost_top_edge = self._get_bottommost_top_edge(last_platform, new_platform_height)
         new_platform_top_edge = random.randint(int(topmost_top_edge), int(bottommost_top_edge))
 
-        new_platform_length = random.randint(int(self.min_platform_length), int(self.max_platform_length))
+        new_platform_length = random.randint(MINIMUM_PLATFORM_LENGTH, MAXIMUM_PLATFORM_LENGTH)
 
         max_vertical_time = self.player.get_max_time_to_top_edge(last_platform.top_edge, new_platform_top_edge)
 
         max_distance = self.get_horizontal_distance(max_vertical_time, accuracy)
-        min_distance = self.get_horizontal_distance(max_vertical_time, accuracy - self.min_distance_accuracy_decrease)
+        min_distance = self.get_horizontal_distance(max_vertical_time, accuracy - MINIMUM_GENERATOR_ACCURACY_DECREASE)
         distance = random.randint(int(min_distance), int(max_distance))
 
         new_platform_left_edge = last_platform.right_edge + distance
@@ -60,11 +54,11 @@ class Generator:
         """returns: Platform; the hardest platform possible at this difficulty"""
 
         accuracy = self._get_accuracy(difficulty)
-        platform_height = random.randint(int(self.min_platform_height), int(self.max_platform_height))
+        platform_height = random.randint(MINIMUM_PLATFORM_HEIGHT, MAXIMUM_PLATFORM_HEIGHT)
 
         platform_top_edge = self.player.get_topmost_top_edge(last_platform, accuracy, self._get_accuracy(1))
 
-        platform_length = random.randint(int(self.min_platform_length), int(self.max_platform_length))
+        platform_length = random.randint(MINIMUM_PLATFORM_LENGTH, MAXIMUM_PLATFORM_LENGTH)
 
         max_vertical_time = self.player.get_max_time_to_top_edge(last_platform.top_edge, platform_top_edge) * accuracy
 
@@ -96,10 +90,10 @@ class Generator:
         """returns: Platform; the easiest platform possible at this difficulty"""
 
         accuracy = self._get_accuracy(difficulty)
-        platform_height = random.randint(int(self.min_platform_height), int(self.max_platform_height))
+        platform_height = random.randint(MINIMUM_PLATFORM_HEIGHT, MAXIMUM_PLATFORM_HEIGHT)
         platform_top_edge = self._get_bottommost_top_edge(last_platform, platform_height)
 
-        platform_length = random.randint(int(self.min_platform_length), int(self.max_platform_length))
+        platform_length = random.randint(MINIMUM_PLATFORM_LENGTH, MAXIMUM_PLATFORM_LENGTH)
 
         max_vertical_time = self.player.get_max_time_to_top_edge(last_platform.top_edge, platform_top_edge)
         platform_left_edge = last_platform.right_edge + self.get_horizontal_distance(max_vertical_time, accuracy)
@@ -112,22 +106,15 @@ class Generator:
     def _get_accuracy(self, difficulty):
         """returns: double; how accurate the player has to be (1 - margin_of_error)"""
 
-        margins_of_error = SimplePath(Point(0, 35))
-        margins_of_error.add_point(Point(20, 30))
-        margins_of_error.add_point(Point(40, 25))
-        margins_of_error.add_point(Point(60, 20))
-        margins_of_error.add_point(Point(70, 15))
-        margins_of_error.add_point(Point(80, 10))
-        margins_of_error.add_point(Point(90, 6))
-        margins_of_error.add_point(Point(100, 0))
+
 
         # Margins_of_error are in percentages
-        return 1 - ( margins_of_error.get_y_coordinate(difficulty) / 100 )
+        return 1 - ( MARGINS_OF_ERROR.get_y_coordinate(difficulty) / 100 )
 
     def _get_bottommost_top_edge(self, last_platform, platform_height):
         """returns: double; the generated platform's bottommost top_edge (must stay within the screen)"""
 
-        return_value = last_platform.top_edge + self.max_y_change
+        return_value = last_platform.top_edge + MAX_VERTICAL_CHANGE
 
         # The platform's bottom must be visible
         if return_value + platform_height >= screen_height:

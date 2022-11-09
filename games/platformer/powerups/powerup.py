@@ -1,6 +1,7 @@
 from gui_components.component import Component
 from base.velocity_calculator import VelocityCalculator
 from base.important_variables import *
+from game_dependencies.platformer.platformer_constants import POWERUP_LENGTH, POWERUP_HEIGHT
 
 
 class Powerup(Component):
@@ -8,8 +9,8 @@ class Powerup(Component):
 
     object_type = "##Powerup"
 
-    length = VelocityCalculator.get_measurement(screen_length, 3)
-    height = VelocityCalculator.get_measurement(screen_height, 3)
+    length = POWERUP_LENGTH
+    height = POWERUP_HEIGHT
 
     def __init__(self, left_edge, top_edge, path_to_image):
         """Initializes the object"""

@@ -13,7 +13,7 @@ from base.velocity_calculator import VelocityCalculator
 from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
 from games.platformer.weapons.straight_projectile_thrower import StraightProjectileThrower
 from games.platformer.weapons.sword import Sword
-from game_dependencies.platformer.platformer_variables import *
+from game_dependencies.platformer.platformer_constants import *
 from games.platformer.weapons.weapon_user import WeaponUser
 from base.important_variables import *
 

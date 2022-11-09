@@ -1,5 +1,5 @@
 from games.platformer.powerups.powerup import Powerup
-from game_dependencies.platformer.platformer_variables import AMMO_INCREASE_FROM_POWERUP
+from game_dependencies.platformer.platformer_constants import AMMO_INCREASE_FROM_POWERUP
 
 
 class AmmoPowerup(Powerup):

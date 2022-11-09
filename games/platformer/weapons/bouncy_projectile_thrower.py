@@ -3,20 +3,20 @@ from base.important_variables import screen_length, screen_height
 from base.quadratic_equations import PhysicsPath
 from base.velocity_calculator import VelocityCalculator
 from games.platformer.weapons.straight_projectile_thrower import StraightProjectile, StraightProjectileThrower
-
+from game_dependencies.platformer.platformer_constants import *
 
 class BouncyProjectile(StraightProjectile):
     """A projectile that bounces"""
 
     projectile_path = None
-    size = VelocityCalculator.get_measurement(screen_length, 2.5)
+    size = BOUNCY_PROJECTILE_SIZE
     length, height = size, size
 
     def __init__(self, left_edge, top_edge, is_moving_right, projectile_height, user_velocity, object_type, total_hit_points, user, path_to_image):
         """Initializes the object"""
 
         super().__init__(left_edge, top_edge, is_moving_right, user_velocity, object_type, total_hit_points, user, path_to_image)
-        time_to_vertex = .2
+        time_to_vertex = TIME_TO_BOUNCY_PROJECTILE_VERTEX
         self.projectile_path = PhysicsPath(game_object=self, attribute_modifying="top_edge", height_of_path=-projectile_height, initial_distance=top_edge - self.height, time=time_to_vertex)
         self.projectile_path.set_initial_distance(top_edge - self.height)
         self.projectile_path.current_time = time_to_vertex
@@ -41,7 +41,13 @@ class BouncyProjectile(StraightProjectile):
 class BouncyProjectileThrower(StraightProjectileThrower):
     """A projectile thrower except the projectiles bounce"""
 
-    weapon_name = "bouncy thrower"
+    weapon_name = BOUNCY_PROJECTILE_WEAPON_NAME
+
+    def __init__(self, use_action, user):
+        """Initializes the object"""
+
+        super().__init__(use_action, user)
+        self.update_weapon_values(BOUNCY_THROWER_DAMAGE, BOUNCY_THROWER_HIT_POINTS, BOUNCY_THROWER_COOL_DOWN_TIME)
 
     def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
         """Runs all the code for figuring ot what to do when one of the projectiles hits an inanimate object (platforms, trees, etc.)"""
@@ -64,7 +70,7 @@ class BouncyProjectileThrower(StraightProjectileThrower):
         """Runs the code that should be completed when the code decides to use this weapon"""
 
         if self.ammo_left > 0 or not self.has_limited_ammo:
-            self.sub_components.append(BouncyProjectile(self.get_weapon_left_edge(StraightProjectile.length, self.user.should_shoot_right),
+            self.sub_components.append(BouncyProjectile(self.get_weapon_left_edge(BOUNCY_PROJECTILE_SIZE, self.user.should_shoot_right),
                                                         self.user.projectile_top_edge, self.user.should_shoot_right,
                                                         self.user.projectile_height, self.user.projectile_velocity, self.object_type,
                                                         self.total_hit_points, self.user, f"games/platformer/images/{self.user_type}_bouncy_projectile"))

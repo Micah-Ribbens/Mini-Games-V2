@@ -5,16 +5,16 @@ import abc
 # TODO come back to figuring out what weapons should do
 from base.events import Event, TimedEvent
 from base.utility_functions import key_is_pressed
-from game_dependencies.platformer.platformer_variables import *
+from game_dependencies.platformer.platformer_constants import *
 
 
 class Weapon(abc.ABC):
     """Something the user can use to hit enemies or anything else"""
 
-    base_damage = 10
+    base_damage = WEAPON_BASE_DAMAGE
     damage = base_damage
-    total_hit_points = 10
-    hit_points_left = 0
+    total_hit_points = 0
+    hit_points_left = total_hit_points
     use_action = None
     use_key_event = None
     user = None
@@ -29,13 +29,14 @@ class Weapon(abc.ABC):
         """Initilizes the object"""
 
         self.use_key_event = Event()
-        self.damage, self.use_action = damage, use_action
-        self.total_hit_points, self.hit_points_left = hit_points, hit_points
+        self.use_action = use_action
         self.user = user
         self.name = id(self)
         self.wait_event = TimedEvent(cool_down_time, False)
         self.sub_components = [self]
         self.object_type = f"{self.user.user_type} Weapon"
+
+        self.update_weapon_values(damage, hit_points, cool_down_time)
 
     def run(self):
         self.use_key_event.run(self.use_action())
@@ -44,6 +45,13 @@ class Weapon(abc.ABC):
         if self.use_key_event.is_click() and self.wait_event.has_finished():
             self.run_upon_activation()
             self.wait_event.start()
+
+    def update_weapon_values(self, damage, hit_points, cool_down_time):
+        """Updates the values of the weapon that can be modified"""
+
+        self.base_damage, self.damage = damage, damage
+        self.total_hit_points, self.hit_points_left = hit_points, hit_points
+        self.wait_event.time_needed = cool_down_time
 
     def get_sub_components(self):
         """returns: GameObject[0]; all the sub components that must be rendered and have collisions for"""

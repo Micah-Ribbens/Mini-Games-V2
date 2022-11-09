@@ -1,6 +1,6 @@
 from games.platformer.enemies.straight_ninja import StraightEnemy
 from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
-from game_dependencies.platformer.platformer_variables import PLAYER_HEIGHT
+from game_dependencies.platformer.platformer_constants import PLAYER_HEIGHT
 
 
 class BouncyEnemy(StraightEnemy):

@@ -1,5 +1,5 @@
 from games.platformer.powerups.powerup import Powerup
-from game_dependencies.platformer.platformer_variables import HEALTH_INCREASE_FROM_HEART
+from game_dependencies.platformer.platformer_constants import HEALTH_INCREASE_FROM_HEART
 
 
 class HeartPowerup(Powerup):

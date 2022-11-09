@@ -22,7 +22,7 @@ from game_dependencies.platformer.health_bar import HealthBar
 from gui_components.hud import HUD
 from gui_components.screen import Screen
 from base.important_variables import *
-from game_dependencies.platformer.platformer_variables import *
+from game_dependencies.platformer.platformer_constants import *
 from games.platformer.powerups.ammo_powerup import AmmoPowerup
 from games.platformer.powerups.heart_powerup import HeartPowerup
 from games.platformer.powerups.straight_thrower_powerup import StraightProjectilePowerup
@@ -62,8 +62,7 @@ class PlatformerScreen(Screen):
     # Scoring
     player_score = 0
     high_score = 0
-    score_to_difficulty = SimplePath(Point(0, 50), [Point(1000, 70), Point(2500, 90), Point(5000, 100),
-                                                    Point(float("inf"), 100)])
+    score_to_difficulty = SCORE_TO_GAME_DIFFICULTY
 
 
     def __init__(self):

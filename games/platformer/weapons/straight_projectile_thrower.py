@@ -6,14 +6,14 @@ from games.platformer.weapons.weapon import Weapon
 from base.engines import CollisionsEngine
 from gui_components.component import Component
 from base.utility_functions import load_and_transform_image, get_direction_path_to_image
-from game_dependencies.platformer.platformer_variables import BASE_WEAPON_AMMO
+from game_dependencies.platformer.platformer_constants import *
 
 
 class StraightProjectile(Component):
     """A projectile that the projectile thrower uses"""
 
-    length = VelocityCalculator.get_measurement(screen_length, 3)
-    height = VelocityCalculator.get_measurement(screen_height, 4)
+    length = STRAIGHT_PROJECTILE_LENGTH
+    height = STRAIGHT_PROJECTILE_HEIGHT
     is_moving_right = False
     velocity = 0
     is_runnable = False
@@ -61,12 +61,12 @@ class StraightProjectileThrower(Weapon):
 
     deleted_sub_components_indexes = []
     user_type = ""  # Stores the information for loading in images (either an enemy or player projectile)
-    weapon_name = "straight thrower"
+    weapon_name = STRAIGHT_THROWER_WEAPON_NAME
 
     def __init__(self, use_action, user):
         """Initializes the object"""
 
-        super().__init__(10, 10, use_action, user, .2)
+        super().__init__(STRAIGHT_THROWER_WEAPON_DAMAGE, STRAIGHT_THROWER_WEAPON_HIT_POINTS, use_action, user, STRAIGHT_THROWER_COOL_DOWN_TIME)
         self.sub_components = []
         self.user_type = "enemy" if user.object_type == "Enemy" else "player"
 
