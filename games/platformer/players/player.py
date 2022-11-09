@@ -20,18 +20,18 @@ from base.important_variables import *
 
 class Player(WeaponUser):
     # Modifiable numbers
-    max_jump_height = jump_displacement
-    running_deceleration_time = .3
-    base_top_edge = 0
-    base_left_edge = 100
-    max_velocity = VelocityCalculator.get_velocity(screen_length, 450)
-    time_to_get_to_max_velocity = .2
-    total_hit_points = 60
+    max_jump_height = PLAYER_JUMP_DISPLACEMENT
+    running_deceleration_time = PLAYER_RUNNING_DECELERATION_TIME
+    base_top_edge = PLAYER_BASE_TOP_EDGE
+    base_left_edge = PLAYER_BASE_LEFT_EDGE
+    max_velocity = PLAYER_MAX_HORIZONTAL_VELOCITY
+    time_to_get_to_max_velocity = PLAYER_TIME_TO_GET_MAX_VELOCITY
+    total_hit_points = PLAYER_TOTAL_HIT_POINTS
     hit_points_left = total_hit_points
-    object_type = "Player"
-    length = VelocityCalculator.get_measurement(screen_length, 5)
-    height = player_height
-    ammo_left = base_weapon_ammo
+    object_type = PLAYER_OBJECT_TYPE
+    length = PLAYER_LENGTH
+    height = PLAYER_HEIGHT
+    ammo_left = BASE_WEAPON_AMMO
     weapon_class_to_weapon = {}
 
     # Miscellaneous
@@ -44,6 +44,7 @@ class Player(WeaponUser):
     gravity_engine = None
     invincibility_event = None
     platform_is_on = None
+    last_platform_was_on = None
 
     # So the player can be run and side scrolling can be done before the rendering (otherwise it doesn't look smooth)
     is_runnable = False
@@ -70,7 +71,7 @@ class Player(WeaponUser):
         self.left_key, self.right_key, self.jump_key = left_key, right_key, jump_key
         self.down_key, self.attack_key = down_key, attack_key
 
-        self.jumping_path = PhysicsPath(game_object=self, attribute_modifying="top_edge", height_of_path=-jump_displacement, initial_distance=self.top_edge, time=time_to_vertex_of_jump)
+        self.jumping_path = PhysicsPath(game_object=self, attribute_modifying="top_edge", height_of_path=-PLAYER_JUMP_DISPLACEMENT, initial_distance=self.top_edge, time=PLAYER_TIME_TO_JUMP_VERTEX)
         self.jumping_path.set_initial_distance(self.top_edge)
         self.acceleration_path = PhysicsPath()
         self.acceleration_path.set_acceleration_with_velocity(self.time_to_get_to_max_velocity, self.max_velocity)
@@ -79,7 +80,7 @@ class Player(WeaponUser):
 
         self.jumping_event, self.right_event, self.left_event = Event(), Event(), Event()
 
-        self.invincibility_event = TimedEvent(1, False)
+        self.invincibility_event = TimedEvent(PLAYER_INVINCIBILITY_TOTAL_TIME, False)
         self.paths_and_events = [self.jumping_path, self.deceleration_path, self.acceleration_path]
 
         weapon_data = [lambda: key_is_pressed(self.attack_key), self]
@@ -129,11 +130,12 @@ class Player(WeaponUser):
     def set_is_on_platform(self, is_on_platform, platform_is_on):
         """Sets the player's is on platform attribute"""
 
-        if self.is_on_platform != is_on_platform and is_on_platform:
+        if not self.is_on_platform and is_on_platform:
             self.jumping_path.reset()
             self.jumping_path.set_initial_distance(self.top_edge)
             self.jumping_path.initial_velocity = self.initial_upwards_velocity
 
+        self.last_platform_was_on = platform_is_on if is_on_platform else self.last_platform_was_on
         self.platform_is_on = platform_is_on if is_on_platform else None
         self.is_on_platform = is_on_platform
 
@@ -142,6 +144,13 @@ class Player(WeaponUser):
 
         self.left_edge = self.base_left_edge
         self.top_edge = self.base_top_edge
+
+        self.weapon.reset()
+        self.run_respawning()  # Resetting from the game ending and respawning has a lot in similarity
+
+    def run_respawning(self):
+        """Makes the player respawn (resets most things)"""
+
         self.is_on_platform = True
         self.jumping_path.initial_velocity = self.initial_upwards_velocity
         self.hit_points_left = self.total_hit_points
@@ -152,8 +161,6 @@ class Player(WeaponUser):
 
         for path_or_event in self.paths_and_events:
             path_or_event.reset()
-
-        self.weapon.reset()
 
     def set_top_edge(self, top_edge):
         """Sets the y coordinate of the player"""
@@ -378,7 +385,7 @@ class Player(WeaponUser):
         if len(second_falling_times) == 2:
             second_falling_time = second_falling_times[1]
 
-        return first_falling_time + second_falling_time + time_to_vertex_of_jump
+        return first_falling_time + second_falling_time + PLAYER_TIME_TO_JUMP_VERTEX
 
     def get_total_time(self, start_top_edge, gravity, new_top_edge, falling_distance):
          # First and second falling times are in relation to what side of the jump -> vertex parabola
@@ -387,7 +394,7 @@ class Player(WeaponUser):
         second_falling_distance = new_top_edge - vertex_top_edge
         second_falling_time = solve_quadratic(1 / 2 * gravity, 0, -second_falling_distance)[1]
 
-        return f"total time {first_falling_time + second_falling_time + time_to_vertex_of_jump} first falling time {first_falling_time} second falling time {second_falling_time}"
+        return f"total time {first_falling_time + second_falling_time + PLAYER_TIME_TO_JUMP_VERTEX} first falling time {first_falling_time} second falling time {second_falling_time}"
 
     # Getters and Setters
     def increase_ammo(self, amount):
@@ -409,7 +416,7 @@ class Player(WeaponUser):
         """Changes the player's weapon to that weapon (ammo is kept the same)"""
 
         if self.weapon.weapon_name == weapon_class.weapon_name:
-            self.weapon.damage += damage_increase_from_duplicate_weapon_pickup
+            self.weapon.damage += DAMAGE_INCREASE_FROM_DUPLICATE_WEAPON_PICKUP
 
         else:
             self.weapon = self.weapon_class_to_weapon[weapon_class.weapon_name]

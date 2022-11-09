@@ -1,5 +1,5 @@
 from games.platformer.powerups.powerup import Powerup
-from game_dependencies.platformer.platformer_variables import health_increase_from_heart
+from game_dependencies.platformer.platformer_variables import HEALTH_INCREASE_FROM_HEART
 
 
 class HeartPowerup(Powerup):
@@ -13,4 +13,4 @@ class HeartPowerup(Powerup):
     def run_player_collision(self, player):
         """Gives the player more health"""
 
-        player.increase_health(health_increase_from_heart)
+        player.increase_health(HEALTH_INCREASE_FROM_HEART)

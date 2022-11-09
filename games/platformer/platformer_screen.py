@@ -12,6 +12,7 @@ from base.velocity_calculator import VelocityCalculator
 from game_dependencies.platformer.generator import Generator
 from game_dependencies.platformer.gravity_engine import GravityEngine
 from games.platformer.inanimate_objects.platform import Platform
+from games.platformer.inanimate_objects.wall_of_death import WallOfDeath
 from games.platformer.players.player import Player
 from games.platformer.enemies.charging_bull import ChargingBull
 from games.platformer.enemies.straight_ninja import StraightEnemy
@@ -46,6 +47,7 @@ class PlatformerScreen(Screen):
     rightmost_platform = None
     generator = None
     number_of_platforms_generated = 0
+    wall_of_death = WallOfDeath()
 
     # Modifiable Numbers
     health_grid_length = VelocityCalculator.get_measurement(screen_length, 25)
@@ -62,6 +64,7 @@ class PlatformerScreen(Screen):
     high_score = 0
     score_to_difficulty = SimplePath(Point(0, 50), [Point(1000, 70), Point(2500, 90), Point(5000, 100),
                                                     Point(float("inf"), 100)])
+
 
     def __init__(self):
         """Initializes the object"""
@@ -95,7 +98,7 @@ class PlatformerScreen(Screen):
         # self.platforms = [Platform(), Platform(Platform().x_coordinate, Platform().y_coordinate - self.players[0].max_jump_height * 1/2 - 200 - self.players[0].height, screen_length, 200, True)]
 
         # Two normal platforms
-        # self.platforms = [Platform(), Platform(Platform().right_edge + 200, Platform().y_coordinate - self.players[0].max_jump_height, 200, 200, True)]
+        # self.platforms = [Platform(), Platform(Platform().right_edge + 200, Platform().y_coordinate - self.players[0].max_jump_height, 200a, 200, True)]
 
         # One Long Platform
         self.platforms = [Platform(0, screen_height - 100, 800, 100)]
@@ -171,13 +174,13 @@ class PlatformerScreen(Screen):
     def run_powerup_spawning(self, new_platform):
         """Runs the spawning of powerups after a platform is generated: a powerup won't spawn everytime"""
 
-        should_generate_powerup = is_random_chance(probability_of_getting_powerup_generated)
+        should_generate_powerup = is_random_chance(PROBABILITY_OF_GETTING_POWERUP_GENERATED)
         weapon_powerups = [BouncyProjectilePowerup, StraightProjectilePowerup]
         non_weapon_powerups = [HeartPowerup, AmmoPowerup]
         powerup_left_edge, powerup_top_edge = new_platform.horizontal_midpoint, new_platform.top_edge - Powerup.height
 
         if should_generate_powerup:
-            should_generate_weapon = is_random_chance(weapon_powerup_probability)
+            should_generate_weapon = is_random_chance(PROBABILITY_OF_POWERUP_BEING_A_WEAPON)
             powerup_class_list = weapon_powerups if should_generate_weapon else non_weapon_powerups
             powerup_class = random.choice(powerup_class_list)
             self.powerups.append(powerup_class(powerup_left_edge, powerup_top_edge))
@@ -191,19 +194,25 @@ class PlatformerScreen(Screen):
 
         # If the distance of the farthest back player is greater than the distance needed for sidescrolling then
         # All the objects in the game should be side scrolled
-        if shortest_distance > side_scrolling_start_distance:
-            side_scrolling_distance = shortest_distance - side_scrolling_start_distance
+        if shortest_distance > SIDE_SCROLLING_START_DISTANCE:
+            side_scrolling_distance = shortest_distance - SIDE_SCROLLING_START_DISTANCE
+            self.side_scroll_all_objects(side_scrolling_distance)
 
-            self.side_scroll_objects(side_scrolling_distance, self.players)
-            self.side_scroll_objects(side_scrolling_distance, self.enemies)
-            self.side_scroll_objects(side_scrolling_distance, self.platforms)
-            self.side_scroll_objects(side_scrolling_distance, self.powerups)
 
     def side_scroll_objects(self, distance, game_objects):
         """Moves all the objects leftwards by the distance specified (side scrolling)"""
 
         for game_object in game_objects:
             game_object.update_for_side_scrolling(distance)
+
+    def side_scroll_all_objects(self, side_scrolling_distance):
+        """Side scrolls all the game objects by 'side_scrolling_distance'"""
+
+        self.side_scroll_objects(side_scrolling_distance, self.players)
+        self.side_scroll_objects(side_scrolling_distance, self.enemies)
+        self.side_scroll_objects(side_scrolling_distance, self.platforms)
+        self.side_scroll_objects(side_scrolling_distance, self.powerups)
+        self.wall_of_death.update_for_side_scrolling(side_scrolling_distance)
 
     def update_game_objects(self):
         """Runs the necessary code to prepare for collisions and some other miscellaneous stuff like making sure
@@ -212,6 +221,9 @@ class PlatformerScreen(Screen):
         player_components = []
         for player in self.players:
             if player.hit_points_left <= 0 or not is_within_screen(player):
+                self.run_player_respawn()
+
+            if CollisionsEngine.is_collision(player, self.wall_of_death):
                 self.reset_game()
 
             player_components += player.get_sub_components()
@@ -223,7 +235,7 @@ class PlatformerScreen(Screen):
             enemy.reset_collision_data()
 
             if enemy.hit_points_left <= 0:
-                self.player_score += score_from_killing_enemy
+                self.player_score += SCORE_FROM_KILLING_ENEMY
 
             if enemy.hit_points_left > 0 and enemy.platform.right_edge >= 0:
                 updated_enemies.append(enemy)
@@ -235,12 +247,30 @@ class PlatformerScreen(Screen):
                 updated_platforms.append(platform)
 
             else:
-                self.player_score += score_from_passing_platform
+                self.player_score += SCORE_FROM_PASSING_PLATFORM
 
         self.platforms = updated_platforms
 
         self.enemies = updated_enemies
         self.game_objects = player_components + enemy_components + self.platforms + self.powerups
+
+    def run_player_respawn(self):
+        """Makes the player respawn"""
+
+        for player in self.players:
+            player.run_respawning()
+            player.left_edge = player.last_platform_was_on.horizontal_midpoint
+            player.top_edge = player.last_platform_was_on.top_edge - player.height
+
+            if player.last_platform_was_on.horizontal_midpoint <= 0:
+                difference = abs(player.last_platform_was_on.horizontal_midpoint)
+                self.side_scroll_all_objects(-difference)
+
+        self.wall_of_death.total_time += WALL_OF_DEATH_TIME_INCREASE_AFTER_PLAYER_DEATH
+        self.powerups = []
+        self.enemies = []
+        HistoryKeeper.last_objects = {}
+        self.gravity_engine.reset()
 
     def update_rightmost_platform(self):
         """Updates the attribute 'rightmost_platform' so it is actually the rightmost_platform"""
@@ -261,6 +291,7 @@ class PlatformerScreen(Screen):
         self.player_score = 0
         self.number_of_platforms_generated = 0
         self.powerups = []
+        self.wall_of_death.reset()
 
     def run_all_collisions(self):
         """Runs all the collisions between the player, projectiles, and enemies"""
@@ -358,7 +389,7 @@ class PlatformerScreen(Screen):
         for game_object in self.players + self.enemies:
             components += game_object.get_components()
 
-        return [self.hud] + components + self.player_health_bars + self.platforms + self.powerups
+        return [self.hud] + components + self.player_health_bars + self.platforms + self.powerups + [self.wall_of_death]
 
     # HELPER METHODS FOR COLLISIONS; Since they all have a unique length I can just use the lengths here
     def is_enemy(self, game_object):

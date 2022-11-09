@@ -1,6 +1,6 @@
 from games.platformer.enemies.straight_ninja import StraightEnemy
 from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
-from game_dependencies.platformer.platformer_variables import player_height
+from game_dependencies.platformer.platformer_variables import PLAYER_HEIGHT
 
 
 class BouncyEnemy(StraightEnemy):
@@ -16,4 +16,4 @@ class BouncyEnemy(StraightEnemy):
     def projectile_height(self):
         # Since all players should be the same height, then the first one can be safely chosen
         # because there has to be at least one player
-        return player_height / 2
+        return PLAYER_HEIGHT / 2

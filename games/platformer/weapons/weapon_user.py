@@ -1,5 +1,6 @@
 import abc
 
+from game_dependencies.platformer.game_object import GameObject
 from gui_components.component import Component
 from base.engines import CollisionsEngine
 from base.important_variables import screen_length
@@ -7,7 +8,7 @@ from base.velocity_calculator import VelocityCalculator
 from pygame_library.utility_functions import load_and_transform_image, get_direction_path_to_image
 
 
-class WeaponUser(Component):
+class WeaponUser(Component, GameObject):
     """A class that provides what is needed for a weapon to function"""
 
     max_velocity = 0

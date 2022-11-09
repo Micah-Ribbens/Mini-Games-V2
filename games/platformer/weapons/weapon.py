@@ -22,7 +22,7 @@ class Weapon(abc.ABC):
     wait_event = None
     object_type = "" # Used for collisions, so the collision code knows the type of an object
     index = 0
-    ammo_left = base_weapon_ammo
+    ammo_left = BASE_WEAPON_AMMO
     has_limited_ammo = True
 
     def __init__(self, damage, hit_points, use_action, user, cool_down_time):

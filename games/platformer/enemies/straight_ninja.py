@@ -61,7 +61,6 @@ class StraightEnemy(Enemy):
     def shoot_star(self):
         """Shoots a star"""
 
-        # Casting to int prevents a rounding error (off by .000000001 or less)
         self.is_facing_right = not self.is_facing_right
 
         self.weapon.run_upon_activation()

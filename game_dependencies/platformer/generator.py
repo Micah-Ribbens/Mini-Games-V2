@@ -81,13 +81,13 @@ class Generator:
         """ returns: Platform; the updated 'platform' that is within the screen meaning when the player gets to the edge
             of 'last_platform' they can see a good amount of the next platform"""
 
-        last_platform_length_left = last_platform.right_edge - side_scrolling_start_distance - self.player.length
+        last_platform_length_left = last_platform.right_edge - SIDE_SCROLLING_START_DISTANCE - self.player.length
 
         next_platform_length_visible = screen_length - next_platform.left_edge
         next_platform_length_visible += last_platform_length_left
 
-        if next_platform_length_visible < min_platform_length_visible:
-            difference = min_platform_length_visible - next_platform_length_visible
+        if next_platform_length_visible < MINIMUM_PLATFORM_LENGTH_VISIBLE:
+            difference = MINIMUM_PLATFORM_LENGTH_VISIBLE - next_platform_length_visible
             next_platform.left_edge -= difference
 
         return next_platform

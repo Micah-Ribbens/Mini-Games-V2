@@ -1,5 +1,5 @@
 from games.platformer.powerups.powerup import Powerup
-from game_dependencies.platformer.platformer_variables import ammo_increase_from_powerup
+from game_dependencies.platformer.platformer_variables import AMMO_INCREASE_FROM_POWERUP
 
 
 class AmmoPowerup(Powerup):
@@ -13,4 +13,4 @@ class AmmoPowerup(Powerup):
     def run_player_collision(self, player):
         """Gives the player more ammo"""
 
-        player.increase_ammo(ammo_increase_from_powerup)
+        player.increase_ammo(AMMO_INCREASE_FROM_POWERUP)

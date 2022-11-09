@@ -4,11 +4,11 @@ from base.important_variables import (
 )
 
 from base.velocity_calculator import VelocityCalculator
-from games.platformer.inanimate_objects.inanimate_object import InanimateObject
 from gui_components.component import Component
+from game_dependencies.platformer.game_object import GameObject
 
 
-class Platform(InanimateObject):
+class Platform(Component, GameObject):
     """The platform that the players can jump onto and interact with"""
 
     color = (150, 75, 0)

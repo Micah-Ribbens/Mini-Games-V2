@@ -7,16 +7,10 @@ from base.velocity_calculator import VelocityCalculator
 from gui_components.component import Component
 
 
-class InanimateObject(Component):
-    """The platform that the players can jump onto and interact with"""
+class GameObject:
+    """A class that use is for providing functions and attributes that must be in common for all game objects (or at least almost all)"""
 
-    color = (150, 75, 0)
-    object_type = "Platform"
-
-    def __init__(self, path_to_image):
-        """Initializes the object"""
-
-        super().__init__(path_to_image)
+    object_type = ""
 
     def update_for_side_scrolling(self, amount):
         """Updates the inanimate object, so it side scrolls"""

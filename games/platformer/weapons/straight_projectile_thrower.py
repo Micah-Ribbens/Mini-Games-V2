@@ -6,7 +6,7 @@ from games.platformer.weapons.weapon import Weapon
 from base.engines import CollisionsEngine
 from gui_components.component import Component
 from base.utility_functions import load_and_transform_image, get_direction_path_to_image
-from game_dependencies.platformer.platformer_variables import base_weapon_ammo
+from game_dependencies.platformer.platformer_variables import BASE_WEAPON_AMMO
 
 
 class StraightProjectile(Component):
@@ -122,7 +122,7 @@ class StraightProjectileThrower(Weapon):
         """Resets everything back to the start of the game"""
 
         self.sub_components = []
-        self.ammo_left = base_weapon_ammo
+        self.ammo_left = BASE_WEAPON_AMMO
 
 
 
