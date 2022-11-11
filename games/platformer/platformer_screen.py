@@ -359,7 +359,7 @@ class PlatformerScreen(Screen):
 
             # Removes it from the screen so it is deleted: can't delete here because that would cause issues with modifying
             # a list while it is being iterated over
-            other_object.left_edge = -1000
+            main_object.left_edge = -1000
 
     def run_player_collisions(self, main_object, other_object):
         """Runs the collisions for when the player is the main object"""

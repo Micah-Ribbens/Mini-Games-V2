@@ -1,4 +1,9 @@
-print(0 % 2)
-print(1 % 2)
-print(2 % 2)
-print(3 % 2)
+class a:
+    x = 0
+
+    @x.setter
+    def set_x(self, value):
+        print("ain't no way")
+
+b = a()
+a.x = 99

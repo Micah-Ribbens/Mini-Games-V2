@@ -342,6 +342,8 @@ class Player(WeaponUser):
             self.run_bottom_edge_collision(self.bottom_collision_data[1].bottom_edge)
 
     def set_left_edge(self, left_edge):
+        """Sets the left edge of the player equal to the value provided"""
+
         self.left_edge = left_edge
 
     def change_attribute_if(self, condition, function, value):

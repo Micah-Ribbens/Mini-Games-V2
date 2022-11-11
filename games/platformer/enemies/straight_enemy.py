@@ -1,11 +1,7 @@
-from base.lines import Point
-from base.important_variables import screen_length, screen_height
-from base.paths import VelocityPath, ActionPath
-from base.velocity_calculator import VelocityCalculator
-from games.platformer.enemies.enemy import Enemy
-from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
-from games.platformer.weapons.straight_projectile_thrower import StraightProjectile, StraightProjectileThrower
+from base.paths import ActionPath
 from game_dependencies.platformer.platformer_constants import *
+from games.platformer.enemies.enemy import Enemy
+from games.platformer.weapons.straight_projectile_thrower import StraightProjectileThrower
 
 
 class StraightEnemy(Enemy):
