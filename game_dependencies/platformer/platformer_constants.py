@@ -27,13 +27,15 @@ PLAYER_BASE_TOP_EDGE = VelocityCalculator.get_measurement(screen_height, 60)
 ## TODO Generator
 
 ### Miscellaneous
-MAX_VERTICAL_CHANGE = VelocityCalculator.get_measurement(screen_height, 25)
+MAX_VERTICAL_CHANGE = VelocityCalculator.get_measurement(screen_height, 50)
 SIDE_SCROLLING_START_DISTANCE = VelocityCalculator.get_measurement(screen_length, 33)
 # The minimum amount of the next platform that has to be visible when the player gets to the end of the previous platform
 MINIMUM_PLATFORM_LENGTH_VISIBLE = VelocityCalculator.get_measurement(screen_length, 20)
 MINIMUM_GENERATOR_ACCURACY_DECREASE = .05
 MARGINS_OF_ERROR = SimplePath(Point(0, 35), [Point(20, 30), Point(40, 25), Point(60, 20), Point(70, 15),
                                              Point(80, 10), Point(90, 6), Point(100, 0)])
+MAXIMUM_PLATFORM_VERTICAL_BUFFER = VelocityCalculator.get_measurement(screen_height, 25)
+
 ### Platform Dimensions
 MINIMUM_PLATFORM_HEIGHT = int(VelocityCalculator.get_measurement(screen_height, 10))
 MAXIMUM_PLATFORM_HEIGHT = int(VelocityCalculator.get_measurement(screen_height, 20))
@@ -114,7 +116,7 @@ STRAIGHT_ENEMY_HEIGHT = VelocityCalculator.get_measurement(screen_height, 10)
 
 ## TODO Platform Start Coordinates
 START_PLATFORM_LEFT_EDGE = 0
-START_PLATFORM_TOP_EDGE = PLAYER_BASE_TOP_EDGE - PLAYER_HEIGHT
+START_PLATFORM_TOP_EDGE = PLAYER_BASE_TOP_EDGE + PLAYER_HEIGHT
 START_PLATFORM_LENGTH = VelocityCalculator.get_measurement(screen_length, 50)
 START_PLATFORM_HEIGHT = VelocityCalculator.get_measurement(screen_height, 15)
 

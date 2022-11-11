@@ -69,7 +69,7 @@ class GeneratorTestScreen(PlatformerScreen):
             if player.platform_is_on is not None and not CollisionsEngine.is_collision(player, player.platform_is_on):
                 player.set_is_on_platform(False, None)
 
-            # player.run()
+            player.run()
 
         if self.frames % 1 == 0 and self.frames > 1:
             self.update_game_objects()

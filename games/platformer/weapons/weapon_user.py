@@ -11,7 +11,6 @@ from pygame_library.utility_functions import load_and_transform_image, get_direc
 class WeaponUser(Component, GameObject):
     """A class that provides what is needed for a weapon to function"""
 
-    max_velocity = 0
     is_facing_right = False
     hit_points_left = 0
     total_hit_points = 0
@@ -40,10 +39,6 @@ class WeaponUser(Component, GameObject):
 
         self.sub_components = [self]
         self.components = []
-
-    @property
-    def projectile_velocity(self):
-        return self.max_velocity
 
     @property
     def projectile_top_edge(self):

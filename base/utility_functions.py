@@ -148,3 +148,15 @@ def is_random_chance(probability: Fraction):
     """
 
     return random.randint(1, probability.denominator) <= probability.numerator
+
+
+def is_beyond_screen_left(left_edge):
+    """returns: boolean; if the left_edge is beyond the left side of the screen"""
+
+    return left_edge <= 0
+
+
+def is_beyond_screen_right(right_edge):
+    """returns: boolean; if the right_edge is beyond the right side of the screen"""
+
+    return right_edge >= screen_length
