@@ -78,13 +78,13 @@ class GameMovement:
             projectile.is_moving_down = True
 
     @staticmethod
-    def run_acceleration(player, should_accelerate, acceleration_path):
-        """Runs the acceleration of the player"""
+    def run_acceleration(player, should_accelerate, acceleration_path, player_max_velocity):
+        """Runs the acceleration of the player: player must have the attributes: 'current_velocity'"""
 
         acceleration_path.run(False, should_accelerate, True)
         player.current_velocity = acceleration_path.get_final_velocity()
 
-        if player.current_velocity > player.max_velocity:
-            player.current_velocity = player.max_velocity
+        if player.current_velocity > player_max_velocity:
+            player.current_velocity = player_max_velocity
 
 

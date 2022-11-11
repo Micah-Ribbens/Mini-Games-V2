@@ -15,11 +15,12 @@ from games.platformer.inanimate_objects.platform import Platform
 from games.platformer.inanimate_objects.wall_of_death import WallOfDeath
 from games.platformer.players.player import Player
 from games.platformer.enemies.charging_bull import ChargingBull
-from games.platformer.enemies.straight_ninja import StraightEnemy
-from games.platformer.enemies.bouncy_ninja import BouncyEnemy
+from games.platformer.enemies.straight_enemy import StraightEnemy
+from games.platformer.enemies.bouncy_enemy import BouncyEnemy
 from gui_components.grid import Grid
 from game_dependencies.platformer.health_bar import HealthBar
 from gui_components.hud import HUD
+from gui_components.intermediate_screen import IntermediateScreen
 from gui_components.screen import Screen
 from base.important_variables import *
 from game_dependencies.platformer.platformer_constants import *
@@ -48,6 +49,7 @@ class PlatformerScreen(Screen):
     generator = None
     number_of_platforms_generated = 0
     wall_of_death = WallOfDeath()
+    intermediate_screen = IntermediateScreen()
 
     # Modifiable Numbers
     health_grid_length = VelocityCalculator.get_measurement(screen_length, 25)
@@ -63,15 +65,15 @@ class PlatformerScreen(Screen):
     player_score = 0
     high_score = 0
     score_to_difficulty = SCORE_TO_GAME_DIFFICULTY
-
+    is_high_score = False
 
     def __init__(self):
         """Initializes the object"""
 
         super().__init__("games/platformer/images/background_faded.png")
 
-        file_reader = FileReader("games\\platformer\\high_scores.txt")
-        self.high_score = int(file_reader.get_float_list("high_score")[0])
+        file_reader = FileReader("games\platformer\high_scores.txt")
+        self.high_score = int(file_reader.get_float_list("high_scores")[0])
 
         health_grid = Grid(Dimensions(0, 0, self.health_grid_length, self.health_grid_height), 2, 2)
         self.players = [Player(KEY_A, KEY_D, KEY_W, KEY_S, KEY_F)]
@@ -100,7 +102,7 @@ class PlatformerScreen(Screen):
         # self.platforms = [Platform(), Platform(Platform().right_edge + 200, Platform().y_coordinate - self.players[0].max_jump_height, 200a, 200, True)]
 
         # One Long Platform
-        self.platforms = [Platform(0, screen_height - 100, 800, 100)]
+        self.platforms = [Platform(START_PLATFORM_LEFT_EDGE, START_PLATFORM_TOP_EDGE, START_PLATFORM_LENGTH, START_PLATFORM_HEIGHT)]
 
         # Sandwich Platform
         # self.platforms = [Platform(100, 300, 800, 100), Platform(0, 200, 100, 100), Platform(910, 200, 100, 100)]
@@ -115,7 +117,19 @@ class PlatformerScreen(Screen):
     def run(self):
         """Runs all the code necessary in order for the platformer to work"""
 
-        self.high_score = max(self.player_score, self.high_score)
+        if self.intermediate_screen.has_finished():
+            self.run_game_code()
+
+        else:
+            self.intermediate_screen.run()
+
+    def run_game_code(self):
+        """Runs all the code for running the game that runs when the intermediate screen is not being displayed"""
+
+        if self.player_score > self.high_score:
+            self.is_high_score = True
+            self.high_score = self.player_score
+
         self.ammo_field.text = f"Ammo Left: {self.players[0].ammo_left}"
         self.hud.update([self.player_score], self.high_score)
         self.gravity_engine.run()
@@ -197,7 +211,6 @@ class PlatformerScreen(Screen):
             side_scrolling_distance = shortest_distance - SIDE_SCROLLING_START_DISTANCE
             self.side_scroll_all_objects(side_scrolling_distance)
 
-
     def side_scroll_objects(self, distance, game_objects):
         """Moves all the objects leftwards by the distance specified (side scrolling)"""
 
@@ -258,18 +271,31 @@ class PlatformerScreen(Screen):
 
         for player in self.players:
             player.run_respawning()
-            player.left_edge = player.last_platform_was_on.horizontal_midpoint
-            player.top_edge = player.last_platform_was_on.top_edge - player.height
 
             if player.last_platform_was_on.horizontal_midpoint <= 0:
                 difference = abs(player.last_platform_was_on.horizontal_midpoint)
                 self.side_scroll_all_objects(-difference)
 
+            player.left_edge = player.last_platform_was_on.horizontal_midpoint
+            player.top_edge = player.last_platform_was_on.top_edge - player.height
+            self.remove_enemies_on_platform(player.last_platform_was_on)
+
         self.wall_of_death.total_time += WALL_OF_DEATH_TIME_INCREASE_AFTER_PLAYER_DEATH
         self.powerups = []
-        self.enemies = []
         HistoryKeeper.last_objects = {}
         self.gravity_engine.reset()
+        self.intermediate_screen.display("Player Respawn", RESPAWN_MESSAGE_TIME)
+
+    def remove_enemies_on_platform(self, platform):
+        """Removes all the enemies that are on that platform"""
+
+        enemies_not_on_platform = []
+
+        for enemy in self.enemies:
+            if enemy.platform != platform:
+                enemies_not_on_platform.append(enemy)
+
+        self.enemies = enemies_not_on_platform
 
     def update_rightmost_platform(self):
         """Updates the attribute 'rightmost_platform' so it is actually the rightmost_platform"""
@@ -291,6 +317,11 @@ class PlatformerScreen(Screen):
         self.number_of_platforms_generated = 0
         self.powerups = []
         self.wall_of_death.reset()
+
+        high_score_message = f"New High Score: {self.high_score}"
+        non_high_score_message = f"Score: {self.player_score}"
+        message = high_score_message if self.is_high_score else non_high_score_message
+        self.intermediate_screen.display(message, DEATH_MESSAGE_TIME)
 
     def run_all_collisions(self):
         """Runs all the collisions between the player, projectiles, and enemies"""
@@ -384,11 +415,12 @@ class PlatformerScreen(Screen):
     def get_components(self):
         """returns: Component[]; all the components that should be rendered"""
 
-        components = []
+        game_components = []
         for game_object in self.players + self.enemies:
-            components += game_object.get_components()
+            game_components += game_object.get_components()
 
-        return [self.hud] + components + self.player_health_bars + self.platforms + self.powerups + [self.wall_of_death]
+        game_components += self.player_health_bars + self.platforms + self.powerups + [self.wall_of_death] + [self.hud]
+        return game_components if self.intermediate_screen.has_finished() else self.intermediate_screen.get_components()
 
     # HELPER METHODS FOR COLLISIONS; Since they all have a unique length I can just use the lengths here
     def is_enemy(self, game_object):

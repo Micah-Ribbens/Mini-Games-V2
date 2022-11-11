@@ -147,4 +147,4 @@ def is_random_chance(probability: Fraction):
         returns: boolean; if the random number between 1-probability.denominator is >= probability.numerator
     """
 
-    return random.randint(probability.numerator, probability.denominator) <= probability.numerator
+    return random.randint(1, probability.denominator) <= probability.numerator

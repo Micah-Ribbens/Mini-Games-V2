@@ -7,6 +7,7 @@ class FileReader:
     name_to_data = {}
 
     def __init__(self, file_path):
+        self.name_to_data = {}
         lines = self.get_lines(file_path)
 
         for line in lines:

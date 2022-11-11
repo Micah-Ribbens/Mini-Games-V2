@@ -5,13 +5,13 @@ from base.velocity_calculator import VelocityCalculator
 from games.platformer.enemies.enemy import Enemy
 from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
 from games.platformer.weapons.straight_projectile_thrower import StraightProjectile, StraightProjectileThrower
+from game_dependencies.platformer.platformer_constants import *
 
 
 class StraightEnemy(Enemy):
     action_path = None
-    velocity = VelocityCalculator.get_velocity(screen_length, 300)
-    length = VelocityCalculator.get_measurement(screen_length, 5)
-    height = VelocityCalculator.get_measurement(screen_height, 10)
+    length = STRAIGHT_ENEMY_LENGTH
+    height = STRAIGHT_ENEMY_HEIGHT
     weapon = None
     is_facing_right = None
     is_gone = None
@@ -24,16 +24,16 @@ class StraightEnemy(Enemy):
         self.number_set_dimensions(platform.left_edge, platform.top_edge - self.height, self.length, self.height)
 
         top_edge = platform.top_edge - self.height
-        wait_time = .5
+        wait_time = 1
         # Creating the action_path for the ninja
-        self.action_path = ActionPath(Point(platform.right_edge - self.length, top_edge), self, self.velocity)
+        self.action_path = ActionPath(Point(platform.right_edge - self.length, top_edge), self, STRAIGHT_ENEMY_HORIZONTAL_VELOCITY)
         self.action_path.add_point(Point(platform.left_edge, top_edge), lambda: [])
         self.action_path.add_point(Point(platform.left_edge, top_edge), self.shoot_star, wait_time)
         self.action_path.add_point(Point(platform.right_edge - self.length, top_edge), lambda: [])
         self.action_path.add_point(Point(platform.right_edge - self.length, top_edge), self.shoot_star, wait_time)
 
         self.action_path.is_unending = True
-        self.weapon = StraightProjectileThrower(lambda: False, self)
+        self.weapon = StraightProjectileThrower(lambda: False, self, STRAIGHT_ENEMY_HORIZONTAL_VELOCITY)
         self.weapon.has_limited_ammo = False
 
     def update_for_side_scrolling(self, amount):
@@ -67,7 +67,7 @@ class StraightEnemy(Enemy):
 
     @property
     def projectile_velocity(self):
-        return self.velocity
+        return STRAIGHT_ENEMY_HORIZONTAL_VELOCITY
 
 
 

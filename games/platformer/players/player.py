@@ -19,16 +19,10 @@ from base.important_variables import *
 
 
 class Player(WeaponUser):
-    # Modifiable numbers
-    max_jump_height = PLAYER_JUMP_DISPLACEMENT
-    running_deceleration_time = PLAYER_RUNNING_DECELERATION_TIME
-    base_top_edge = PLAYER_BASE_TOP_EDGE
-    base_left_edge = PLAYER_BASE_LEFT_EDGE
-    max_velocity = PLAYER_MAX_HORIZONTAL_VELOCITY
-    time_to_get_to_max_velocity = PLAYER_TIME_TO_GET_MAX_VELOCITY
-    total_hit_points = PLAYER_TOTAL_HIT_POINTS
+    total_hit_points = PLAYER_TOTAL_HIT_POINTS  # This value could increase mid-game through powerups
     hit_points_left = total_hit_points
     object_type = PLAYER_OBJECT_TYPE
+    # These values are needed for rendering
     length = PLAYER_LENGTH
     height = PLAYER_HEIGHT
     ammo_left = BASE_WEAPON_AMMO
@@ -71,11 +65,13 @@ class Player(WeaponUser):
         self.left_key, self.right_key, self.jump_key = left_key, right_key, jump_key
         self.down_key, self.attack_key = down_key, attack_key
 
-        self.jumping_path = PhysicsPath(game_object=self, attribute_modifying="top_edge", height_of_path=-PLAYER_JUMP_DISPLACEMENT, initial_distance=self.top_edge, time=PLAYER_TIME_TO_JUMP_VERTEX)
+        self.jumping_path = PhysicsPath(game_object=self, attribute_modifying="top_edge", height_of_path=-PLAYER_MAX_JUMP_HEIGHT,
+                                        initial_distance=self.top_edge, time=PLAYER_TIME_TO_JUMP_VERTEX)
+
         self.jumping_path.set_initial_distance(self.top_edge)
         self.acceleration_path = PhysicsPath()
-        self.acceleration_path.set_acceleration_with_velocity(self.time_to_get_to_max_velocity, self.max_velocity)
-        self.deceleration_path = PhysicsPath(game_object=self, attribute_modifying="left_edge", max_time=self.running_deceleration_time)
+        self.acceleration_path.set_acceleration_with_velocity(PLAYER_TIME_TO_GET_MAX_VELOCITY, PLAYER_MAX_HORIZONTAL_VELOCITY)
+        self.deceleration_path = PhysicsPath(game_object=self, attribute_modifying="left_edge", max_time=PLAYER_RUNNING_DECELERATION_TIME)
         self.initial_upwards_velocity = self.jumping_path.initial_velocity
 
         self.jumping_event, self.right_event, self.left_event = Event(), Event(), Event()
@@ -83,7 +79,7 @@ class Player(WeaponUser):
         self.invincibility_event = TimedEvent(PLAYER_INVINCIBILITY_TOTAL_TIME, False)
         self.paths_and_events = [self.jumping_path, self.deceleration_path, self.acceleration_path]
 
-        weapon_data = [lambda: key_is_pressed(self.attack_key), self]
+        weapon_data = [lambda: key_is_pressed(self.attack_key), self, PLAYER_MAX_HORIZONTAL_VELOCITY]
         self.weapon_class_to_weapon = {StraightProjectileThrower.weapon_name: StraightProjectileThrower(*weapon_data),
                                        BouncyProjectileThrower.weapon_name: BouncyProjectileThrower(*weapon_data)}
         self.weapon = self.weapon_class_to_weapon[BouncyProjectileThrower.weapon_name]
@@ -142,8 +138,8 @@ class Player(WeaponUser):
     def reset(self):
         """Resets the player back to the start of the game"""
 
-        self.left_edge = self.base_left_edge
-        self.top_edge = self.base_top_edge
+        self.left_edge = PLAYER_BASE_LEFT_EDGE
+        self.top_edge = PLAYER_BASE_TOP_EDGE
 
         self.weapon.reset()
         self.run_respawning()  # Resetting from the game ending and respawning has a lot in similarity
@@ -181,10 +177,10 @@ class Player(WeaponUser):
         self.deceleration_path.initial_velocity = self.current_velocity if is_moving_right else -self.current_velocity
 
         # If the player is not at maximum velocity it shouldn't take as long to decelerate
-        fraction_of_max_velocity = self.current_velocity / self.max_velocity
-        time_needed = self.running_deceleration_time * fraction_of_max_velocity
+        fraction_of_max_velocity = self.current_velocity / PLAYER_MAX_HORIZONTAL_VELOCITY
+        time_needed = PLAYER_RUNNING_DECELERATION_TIME * fraction_of_max_velocity
 
-        # Gotten using math; Makes the player stop in the amount of time 'self.running_deceleration_time'
+        # Gotten using math; Makes the player stop in the amount of time 'PLAYER_RUNNING_DECELERATION_TIME'
         self.deceleration_path.acceleration = (-self.deceleration_path.initial_velocity) / time_needed
 
         self.deceleration_path.start()
@@ -209,7 +205,7 @@ class Player(WeaponUser):
             # Figuring out the time to get to that velocity, so the player can continue to accelerate to the max velocity
             self.acceleration_path.current_time = sqrt(abs(current_velocity) / self.acceleration_path.acceleration)
 
-        GameMovement.run_acceleration(self, key_is_pressed(self.left_key) or key_is_pressed(self.right_key), self.acceleration_path)
+        GameMovement.run_acceleration(self, key_is_pressed(self.left_key) or key_is_pressed(self.right_key), self.acceleration_path, PLAYER_MAX_HORIZONTAL_VELOCITY)
 
     def can_decelerate(self):
         """returns: boolean; if the player can decelerate (they couldn't if an object was in the way"""
@@ -331,8 +327,7 @@ class Player(WeaponUser):
             returns: double; max y coordinate that the next platform could be at that leaves the player 'margin_of_error'
         """
 
-        max_jump_height = self.max_jump_height
-        topmost_top_edge = last_platform.top_edge - (max_jump_height * accuracy) + self.height
+        topmost_top_edge = last_platform.top_edge - (PLAYER_MAX_JUMP_HEIGHT * accuracy) + self.height
 
         # The absolute max of a platform is the player's height because the player has to get its bottom_edge on the platform
         # Which would mean the player's y coordinate would be 0 also
@@ -346,7 +341,7 @@ class Player(WeaponUser):
     def get_distance_to_reach_max_velocity(self):
         """returns: double; the distance needed for the player to reach max velocity"""
 
-        time_needed = self.max_velocity / self.acceleration_path.acceleration
+        time_needed = PLAYER_MAX_HORIZONTAL_VELOCITY / self.acceleration_path.acceleration
         return self.acceleration_path.get_distance(time_needed)
 
     def get_max_time_to_top_edge(self, start_top_edge, new_top_edge):
@@ -355,27 +350,27 @@ class Player(WeaponUser):
         # TODO change this value if gravity is not the same as the player's jumping path
         gravity = self.jumping_path.acceleration
 
-        vertex_top_edge = start_top_edge - self.max_jump_height
-        total_distance = self.max_jump_height + (new_top_edge - vertex_top_edge)
+        vertex_top_edge = start_top_edge - PLAYER_MAX_JUMP_HEIGHT
+        total_distance = PLAYER_MAX_JUMP_HEIGHT + (new_top_edge - vertex_top_edge)
 
         # Since the y distance the player travels is constant and the distance from where the player jumped and the
         # vertex of the jump stays constant, then in order to optimize the jump the player has to be at the same velocity
-        # on both sides of the jump -> vertex parabola (max_jump_height). This would then mean that the player would have to travel the
+        # on both sides of the jump -> vertex parabola (PLAYER_MAX_JUMP_HEIGHT). This would then mean that the player would have to travel the
         # same distance on both sides because "vf = vi + at" and vi is 0 for both. This then would mean that:
-        # "1/2 * at^2 = 1/2 * (total_distance - max_jump_height)"
-        one_side_falling_time = solve_quadratic(1/2 * gravity, 0, -1/2 * (total_distance - self.max_jump_height))[1]
+        # "1/2 * at^2 = 1/2 * (total_distance - PLAYER_MAX_JUMP_HEIGHT)"
+        one_side_falling_time = solve_quadratic(1/2 * gravity, 0, -1/2 * (total_distance - PLAYER_MAX_JUMP_HEIGHT))[1]
 
         falling_distance = self.jumping_path.get_acceleration_displacement_from_time(one_side_falling_time)
-        player_vertex_after_jump = falling_distance + start_top_edge - self.max_jump_height
+        player_vertex_after_jump = falling_distance + start_top_edge - PLAYER_MAX_JUMP_HEIGHT
 
         # The player can't jump beyond the top of the screen, so that has to be checked (also since the other 'top_edges'
         # Are actually the bottom_edge of the player then I have to substract that to figure out the 'actual_top_edge'
         if player_vertex_after_jump - self.height <= 0:
-            falling_distance = self.max_jump_height - start_top_edge + self.height
+            falling_distance = PLAYER_MAX_JUMP_HEIGHT - start_top_edge + self.height
 
         # First and second falling times are in relation to what side of the jump -> vertex parabola
         first_falling_time = solve_quadratic(1/2 * gravity, 0, -falling_distance)[1]
-        vertex_top_edge = start_top_edge + falling_distance - self.max_jump_height
+        vertex_top_edge = start_top_edge + falling_distance - PLAYER_MAX_JUMP_HEIGHT
         second_falling_distance = new_top_edge - vertex_top_edge
 
         second_falling_times = solve_quadratic(1/2 * gravity, 0, -second_falling_distance)
@@ -390,7 +385,7 @@ class Player(WeaponUser):
     def get_total_time(self, start_top_edge, gravity, new_top_edge, falling_distance):
          # First and second falling times are in relation to what side of the jump -> vertex parabola
         first_falling_time = solve_quadratic(1 / 2 * gravity, 0, -falling_distance)[1]
-        vertex_top_edge = start_top_edge + falling_distance - self.max_jump_height
+        vertex_top_edge = start_top_edge + falling_distance - PLAYER_MAX_JUMP_HEIGHT
         second_falling_distance = new_top_edge - vertex_top_edge
         second_falling_time = solve_quadratic(1 / 2 * gravity, 0, -second_falling_distance)[1]
 

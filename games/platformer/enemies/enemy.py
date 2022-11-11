@@ -5,6 +5,7 @@ from base.history_keeper import HistoryKeeper
 from games.platformer.weapons.weapon_user import WeaponUser
 from game_dependencies.platformer.health_bar import HealthBar
 from pygame_library.utility_functions import load_and_transform_image
+from game_dependencies.platformer.platformer_constants import ENEMY_OBJECT_TYPE
 
 
 class Enemy(WeaponUser, abc.ABC):
@@ -13,9 +14,8 @@ class Enemy(WeaponUser, abc.ABC):
     damage = 0
     is_moving_right = True
     platform = None
-    damage = 10
     health_bar = None
-    object_type = "Enemy"
+    object_type = ENEMY_OBJECT_TYPE
     is_on_platform = True
 
     def __init__(self, damage, hit_points, platform, base_path_to_image):
@@ -60,7 +60,7 @@ class Enemy(WeaponUser, abc.ABC):
             self.update_top_collision_data(inanimate_object, time)
 
     def update_top_collision_data(self, inanimate_object, time):
-        """Updates the top_collision_data for the enemy"""
+        """Updates the top_collision_data for the enemy, so it can be determined if the enemy is on the platform"""
 
         is_same_coordinates = self.right_edge == inanimate_object.left_edge or self.left_edge == inanimate_object.right_edge
         is_top_collision = CollisionsEngine.is_top_collision(self, inanimate_object, True, time) and not is_same_coordinates

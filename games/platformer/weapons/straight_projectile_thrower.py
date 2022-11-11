@@ -62,10 +62,12 @@ class StraightProjectileThrower(Weapon):
     deleted_sub_components_indexes = []
     user_type = ""  # Stores the information for loading in images (either an enemy or player projectile)
     weapon_name = STRAIGHT_THROWER_WEAPON_NAME
+    user_max_velocity = 0
 
-    def __init__(self, use_action, user):
+    def __init__(self, use_action, user, user_max_velocity):
         """Initializes the object"""
 
+        self.user_max_velocity = user_max_velocity
         super().__init__(STRAIGHT_THROWER_WEAPON_DAMAGE, STRAIGHT_THROWER_WEAPON_HIT_POINTS, use_action, user, STRAIGHT_THROWER_COOL_DOWN_TIME)
         self.sub_components = []
         self.user_type = "enemy" if user.object_type == "Enemy" else "player"
@@ -98,7 +100,7 @@ class StraightProjectileThrower(Weapon):
         if self.ammo_left > 0 or not self.has_limited_ammo:
             self.sub_components.append(StraightProjectile(self.get_weapon_left_edge(StraightProjectile.length, self.user.should_shoot_right),
                                        self.user.projectile_top_edge - StraightProjectile.height, self.user.should_shoot_right,
-                                       self.user.projectile_velocity, self.object_type, self.total_hit_points, self.user,
+                                       self.user_max_velocity, self.object_type, self.total_hit_points, self.user,
                                        f"games/platformer/images/{self.user_type}_projectile"))
 
             self.ammo_left -= 1

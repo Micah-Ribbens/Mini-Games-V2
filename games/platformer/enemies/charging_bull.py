@@ -5,21 +5,19 @@ from base.important_variables import screen_length, screen_height
 from base.quadratic_equations import PhysicsPath
 from base.velocity_calculator import VelocityCalculator
 from games.platformer.enemies.enemy import Enemy
+from game_dependencies.platformer.platformer_constants import *
 
 
 class ChargingBull(Enemy):
     """An enemy that charges at players if it sees it"""
 
     # Modifiable Numbers
-    length = VelocityCalculator.get_measurement(screen_length, 8)
-    height = VelocityCalculator.get_measurement(screen_height, 10)
-    time_to_get_to_max_velocity = 1
-    max_velocity = VelocityCalculator.get_velocity(screen_length, 900)
+    length = CHARGING_BULL_LENGTH
+    height = CHARGING_BULL_HEIGHT
 
     acceleration_path = None
     current_velocity = 0
     is_charging = False
-    speed_decrease_multiplier_when_in_air = 3
 
     def __init__(self, damage, hit_points, platform):
         """Initializes the object"""
@@ -29,18 +27,19 @@ class ChargingBull(Enemy):
                                    platform.top_edge - self.height, self.length, self.height)
 
         self.acceleration_path = PhysicsPath()
-        self.acceleration_path.set_acceleration_with_velocity(self.time_to_get_to_max_velocity, self.max_velocity)
+        self.acceleration_path.set_acceleration_with_velocity(CHARGING_BULL_TIME_TO_MAX_HORIZONTAL_VELOCITY, CHARGING_BULL_MAX_HORIZONTAL_VELOCITY)
         self.is_moving_right = False
 
     def run(self):
         """Runs all the code for the charging bull"""
 
-        GameMovement.run_acceleration(self, self.is_charging, self.acceleration_path)
+        GameMovement.run_acceleration(self, self.is_charging, self.acceleration_path, CHARGING_BULL_MAX_HORIZONTAL_VELOCITY)
 
         charging_bull_distance = VelocityCalculator.calculate_distance(self.current_velocity)
 
+        # If it is in the air, then it should not go as fast
         if not self.is_on_platform:
-            charging_bull_distance /= self.speed_decrease_multiplier_when_in_air
+            charging_bull_distance /= CHARGING_BULL_DECREASE_MULTIPLAYER_WHEN_IN_AIR
 
         self.left_edge += charging_bull_distance if self.is_moving_right else -charging_bull_distance
 
@@ -64,15 +63,19 @@ class ChargingBull(Enemy):
 
         is_left_collision = CollisionsEngine.is_left_collision(self, inanimate_object, True, time)
         is_right_collision = CollisionsEngine.is_right_collision(self, inanimate_object, True, time)
+        is_horizontal_collision = is_left_collision or is_right_collision
 
-        if is_left_collision or is_right_collision:
-            self.acceleration_path.current_time = self.time_to_get_to_max_velocity / 2
+        if is_horizontal_collision:
+            self.run_horizontal_inanimate_object_collision(inanimate_object, is_left_collision, is_right_collision)
 
-        if not is_left_collision and not is_right_collision:
+        # If it is not a horizontal collision, then it must be the top collision
+        if not is_horizontal_collision:
             self.update_top_collision_data(inanimate_object, time)
 
-        if not CollisionsEngine.is_top_collision(self, inanimate_object, True, time):
-            CollisionsEngine.is_top_collision(self, inanimate_object, True, time)
+    def run_horizontal_inanimate_object_collision(self, inanimate_object, is_left_collision, is_right_collision):
+        """Runs the horizontal direction of inanimate object collisions"""
+
+        self.acceleration_path.current_time = CHARGING_BULL_TIME_TO_MAX_HORIZONTAL_VELOCITY / 2
 
         if is_left_collision:
             self.is_moving_right = False
@@ -88,6 +91,5 @@ class ChargingBull(Enemy):
     def hit_by_player(self, player_weapon, index_of_sub_component):
         pass
 
-    def get_sub_components(self):
-        return [self]
+
 

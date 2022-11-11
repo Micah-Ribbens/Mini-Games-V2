@@ -43,10 +43,10 @@ class BouncyProjectileThrower(StraightProjectileThrower):
 
     weapon_name = BOUNCY_PROJECTILE_WEAPON_NAME
 
-    def __init__(self, use_action, user):
+    def __init__(self, use_action, user, user_max_velocity):
         """Initializes the object"""
 
-        super().__init__(use_action, user)
+        super().__init__(use_action, user, user_max_velocity)
         self.update_weapon_values(BOUNCY_THROWER_DAMAGE, BOUNCY_THROWER_HIT_POINTS, BOUNCY_THROWER_COOL_DOWN_TIME)
 
     def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
@@ -72,7 +72,7 @@ class BouncyProjectileThrower(StraightProjectileThrower):
         if self.ammo_left > 0 or not self.has_limited_ammo:
             self.sub_components.append(BouncyProjectile(self.get_weapon_left_edge(BOUNCY_PROJECTILE_SIZE, self.user.should_shoot_right),
                                                         self.user.projectile_top_edge, self.user.should_shoot_right,
-                                                        self.user.projectile_height, self.user.projectile_velocity, self.object_type,
+                                                        self.user.projectile_height, self.user_max_velocity, self.object_type,
                                                         self.total_hit_points, self.user, f"games/platformer/images/{self.user_type}_bouncy_projectile"))
             self.ammo_left -= 1
 

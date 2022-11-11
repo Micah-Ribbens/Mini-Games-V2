@@ -1,6 +1,6 @@
-from games.platformer.enemies.straight_ninja import StraightEnemy
+from games.platformer.enemies.straight_enemy import StraightEnemy
 from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
-from game_dependencies.platformer.platformer_constants import PLAYER_HEIGHT
+from game_dependencies.platformer.platformer_constants import PLAYER_HEIGHT, STRAIGHT_ENEMY_HORIZONTAL_VELOCITY
 
 
 class BouncyEnemy(StraightEnemy):
@@ -9,8 +9,8 @@ class BouncyEnemy(StraightEnemy):
     def __init__(self, damage, hit_points, platform):
         """Initializes the object"""
 
-        self.weapon = BouncyProjectileThrower(lambda: False, self)
         super().__init__(damage, hit_points, platform, "games/platformer/images/bouncy_tank")
+        self.weapon = BouncyProjectileThrower(lambda: False, self, STRAIGHT_ENEMY_HORIZONTAL_VELOCITY)
 
     @property
     def projectile_height(self):

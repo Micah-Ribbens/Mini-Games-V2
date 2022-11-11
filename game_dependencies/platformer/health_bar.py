@@ -3,13 +3,15 @@ from base.important_variables import screen_height
 from base.velocity_calculator import VelocityCalculator
 from gui_components.component import Component
 from base.colors import *
+from game_dependencies.platformer.platformer_constants import HEALTH_BAR_HEIGHT
 
 
 class HealthBar(Component):
     """A health bar for a game character"""
 
     game_character = None
-    height = VelocityCalculator.get_measurement(screen_height, 3)
+    default_height = HEALTH_BAR_HEIGHT
+    height = default_height
     health_remaining_bar = None
     health_gone_bar = None
     set_size_function = None
