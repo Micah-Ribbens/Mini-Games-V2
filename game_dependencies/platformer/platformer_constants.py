@@ -68,16 +68,17 @@ STRAIGHT_THROWER_WEAPON_DAMAGE = 10
 STRAIGHT_THROWER_WEAPON_HIT_POINTS = 10
 STRAIGHT_THROWER_COOL_DOWN_TIME = .15
 
-
 ## TODO Powerups
 POWERUP_LENGTH = VelocityCalculator.get_measurement(screen_length, 3)
 POWERUP_HEIGHT = VelocityCalculator.get_measurement(screen_height, 3)
+POWERUP_OBJECT_TYPE = "##Powerup"
+### Powerups Power
+# If the player has a weapon and they pick up the powerup of the same weapon that weapon should be upgraded
 AMMO_INCREASE_FROM_POWERUP = 5
 HEALTH_INCREASE_FROM_HEART = 5
-PROBABILITY_OF_GETTING_POWERUP_GENERATED = Fraction(4, 7)
-# If the player has a weapon and they pick up the powerup of the same weapon that weapon should be upgraded
 DAMAGE_INCREASE_FROM_DUPLICATE_WEAPON_PICKUP = 5
-# Probabilities of a powerup being a specific type
+### Probabilities
+PROBABILITY_OF_GETTING_POWERUP_GENERATED = Fraction(4, 7)
 PROBABILITY_OF_POWERUP_BEING_A_WEAPON = Fraction(35, 100)
 PROBABILITY_OF_POWERUP_NOT_BEING_A_WEAPON = PROBABILITY_OF_POWERUP_BEING_A_WEAPON.get_fraction_to_become_one()
 
@@ -107,6 +108,7 @@ CHARGING_BULL_HEIGHT = VelocityCalculator.get_measurement(screen_height, 10)
 CHARGING_BULL_TIME_TO_MAX_HORIZONTAL_VELOCITY = 1
 CHARGING_BULL_MAX_HORIZONTAL_VELOCITY = VelocityCalculator.get_velocity(screen_length, 900)
 CHARGING_BULL_DECREASE_MULTIPLAYER_WHEN_IN_AIR = 3
+CHARGING_BULL_DISTANCE_NEEDED_TO_CHARGE = VelocityCalculator.get_measurement(screen_length, 30)
 
 ### Straight Enemy
 STRAIGHT_ENEMY_ACTION_PATH_WAIT_TIME = 1
@@ -119,6 +121,9 @@ START_PLATFORM_LEFT_EDGE = 0
 START_PLATFORM_TOP_EDGE = PLAYER_BASE_TOP_EDGE + PLAYER_HEIGHT
 START_PLATFORM_LENGTH = VelocityCalculator.get_measurement(screen_length, 50)
 START_PLATFORM_HEIGHT = VelocityCalculator.get_measurement(screen_height, 15)
+
+# TODO Collisions
+FRAMES_BETWEEN_COLLISIONS = 3
 
 
 

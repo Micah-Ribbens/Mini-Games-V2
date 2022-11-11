@@ -1,15 +1,13 @@
 from math import sqrt
 
-from base.colors import red, light_gray, white
-from base.engines import CollisionsEngine
-from base.lines import LineSegment, Point
-from base.events import Event, TimedEvent
+
+from base.lines import LineSegment
+from base.events import TimedEvent
 from base.game_movement import GameMovement
 
 from base.quadratic_equations import PhysicsPath
 from base.history_keeper import HistoryKeeper
 from base.utility_functions import key_is_pressed, solve_quadratic, key_is_hit, key_has_been_released, is_beyond_screen_left, is_beyond_screen_right
-from base.velocity_calculator import VelocityCalculator
 from games.platformer.weapons.bouncy_projectile_thrower import BouncyProjectileThrower
 from games.platformer.weapons.straight_projectile_thrower import StraightProjectileThrower
 from games.platformer.weapons.sword import Sword
@@ -19,6 +17,8 @@ from base.important_variables import *
 
 
 class Player(WeaponUser):
+    """The way that people can play the game (accepts user input to move)"""
+
     total_hit_points = PLAYER_TOTAL_HIT_POINTS  # This value could increase mid-game through powerups
     hit_points_left = total_hit_points
     object_type = PLAYER_OBJECT_TYPE
@@ -92,7 +92,6 @@ class Player(WeaponUser):
     def run(self):
         """Runs all the code that is necessary for the player to work properly"""
 
-        self.sub_components = [self] + self.weapon.get_sub_components()
         self.ammo_left = self.weapon.ammo_left
 
         self.weapon.run()
@@ -268,21 +267,20 @@ class Player(WeaponUser):
         return normal_velocity if self.deceleration_path.has_finished() else deceleration_velocity
 
     # Collision Stuff
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
         """Runs what should happen when the player collides with an inanimate object"""
 
         if index_of_sub_component == self.index_of_user:
-            self.update_platform_collision_data(inanimate_object, time)
+            self.update_platform_collision_data(inanimate_object)
 
         if index_of_sub_component != self.index_of_user:
-            self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - self.weapon_index_offset, time)
+            self.weapon.run_inanimate_object_collision(inanimate_object, index_of_sub_component - self.weapon_index_offset)
 
-    def run_collisions(self, time):
+    def run_collisions(self):
         """Runs what should happen based on what got stored in the collision data"""
 
         # The player should only act upon the collision data if there was stuff in the History Keeper because if there wasn't
         # Then the game is automatically going to say it was not a collision (top, left, right, bottom)
-        # TODO change to HistoryKeeper.get_last_using_time?
         if HistoryKeeper.get_last(self.name) is not None:
             self.alter_player_horizontal_movement()
             self.alter_player_vertical_movement()
@@ -462,7 +460,3 @@ class Player(WeaponUser):
         """returns: int; the amount of ammo the player has left"""
 
         return self.ammo_left
-
-
-
-

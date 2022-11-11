@@ -59,7 +59,7 @@ class StraightProjectile(Component):
 class StraightProjectileThrower(Weapon):
     """A weapon that is used for throwing projectiles"""
 
-    deleted_sub_components_indexes = []
+    deleted_collidable_components_indexes = []
     user_type = ""  # Stores the information for loading in images (either an enemy or player projectile)
     weapon_name = STRAIGHT_THROWER_WEAPON_NAME
     user_max_velocity = 0
@@ -69,7 +69,7 @@ class StraightProjectileThrower(Weapon):
 
         self.user_max_velocity = user_max_velocity
         super().__init__(STRAIGHT_THROWER_WEAPON_DAMAGE, STRAIGHT_THROWER_WEAPON_HIT_POINTS, use_action, user, STRAIGHT_THROWER_COOL_DOWN_TIME)
-        self.sub_components = []
+        self.collidable_components = []
         self.user_type = "enemy" if user.object_type == "Enemy" else "player"
 
     def run(self):
@@ -77,28 +77,28 @@ class StraightProjectileThrower(Weapon):
 
         super().run()
         # TODO maybe consider updating this if the game is running slow
-        updated_sub_components = []
+        updated_collidable_components = []
 
-        # This for loop updates the sub_components, so all the ones that should be deleted are because they are not
-        # Added to updated_sub_components; also all the subcomponents are run
-        for x in range(len(self.sub_components)):
-            projectile = self.sub_components[x]
+        # This for loop updates the collidable_components, so all the ones that should be deleted are because they are not
+        # Added to updated_collidable_components; also all the subcomponents are run
+        for x in range(len(self.collidable_components)):
+            projectile = self.collidable_components[x]
 
             should_be_deleted = not is_within_screen(projectile) or projectile.hit_points_left <= 0
 
-            if not should_be_deleted and not self.deleted_sub_components_indexes.__contains__(x):
+            if not should_be_deleted and not self.deleted_collidable_components_indexes.__contains__(x):
                 projectile.run()
-                projectile.index = len(updated_sub_components) + self.user.weapon_index_offset
-                updated_sub_components.append(projectile)
+                projectile.index = len(updated_collidable_components) + self.user.weapon_index_offset
+                updated_collidable_components.append(projectile)
 
-        self.sub_components = updated_sub_components
-        self.deleted_sub_components_indexes = []
+        self.collidable_components = updated_collidable_components
+        self.deleted_collidable_components_indexes = []
 
     def run_upon_activation(self):
         """Runs the code that should be completed when the code decides to use this weapon"""
 
         if self.ammo_left > 0 or not self.has_limited_ammo:
-            self.sub_components.append(StraightProjectile(self.get_weapon_left_edge(StraightProjectile.length, self.user.should_shoot_right),
+            self.collidable_components.append(StraightProjectile(self.get_weapon_left_edge(StraightProjectile.length, self.user.should_shoot_right),
                                        self.user.projectile_top_edge - StraightProjectile.height, self.user.should_shoot_right,
                                        self.user_max_velocity, self.object_type, self.total_hit_points, self.user,
                                        f"games/platformer/images/{self.user_type}_projectile"))
@@ -109,21 +109,21 @@ class StraightProjectileThrower(Weapon):
         """Runs the code for figuring out what to do when one of the projectiles hits an enemy or an enemy's projectile"""
 
         user.cause_damage(self.damage)
-        self.deleted_sub_components_indexes.append(index_of_sub_component)
+        self.deleted_collidable_components_indexes.append(index_of_sub_component)
 
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
         """Runs all the code for figuring ot what to do when one of the projectiles hits an inanimate object (platforms, trees, etc.)"""
 
-        self.deleted_sub_components_indexes.append(index_of_sub_component)
+        self.deleted_collidable_components_indexes.append(index_of_sub_component)
 
     def update_for_side_scrolling(self, amount):
-        for projectile in self.sub_components:
+        for projectile in self.collidable_components:
             projectile.left_edge -= amount
 
     def reset(self):
         """Resets everything back to the start of the game"""
 
-        self.sub_components = []
+        self.collidable_components = []
         self.ammo_left = BASE_WEAPON_AMMO
 
 

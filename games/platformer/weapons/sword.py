@@ -52,7 +52,7 @@ class Sword(Weapon):
 
         self.extending_timed_event.reset()
 
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
         """Runs what should happen when the weapon and an inanimate object collide"""
 
         pass

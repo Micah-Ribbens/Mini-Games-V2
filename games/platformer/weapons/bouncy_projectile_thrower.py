@@ -49,28 +49,28 @@ class BouncyProjectileThrower(StraightProjectileThrower):
         super().__init__(use_action, user, user_max_velocity)
         self.update_weapon_values(BOUNCY_THROWER_DAMAGE, BOUNCY_THROWER_HIT_POINTS, BOUNCY_THROWER_COOL_DOWN_TIME)
 
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
         """Runs all the code for figuring ot what to do when one of the projectiles hits an inanimate object (platforms, trees, etc.)"""
 
         # No idea why this sometimes happens but sometimes there is a collision for a projectile that doesn't exist
         # So this must return if that happens otherwise the game crashes
-        if index_of_sub_component >= len(self.sub_components):
+        if index_of_sub_component >= len(self.collidable_components):
             return
 
-        projectile: BouncyProjectile = self.sub_components[index_of_sub_component]
+        projectile: BouncyProjectile = self.collidable_components[index_of_sub_component]
 
         # Only the collision with the top of a platform should be handled differently
-        if CollisionsEngine.is_top_collision(projectile, inanimate_object, True, time):
+        if CollisionsEngine.is_top_collision(projectile, inanimate_object, True):
             projectile.run_collision(inanimate_object.top_edge)
 
         else:
-            super().run_inanimate_object_collision(inanimate_object, index_of_sub_component, time)
+            super().run_inanimate_object_collision(inanimate_object, index_of_sub_component)
 
     def run_upon_activation(self):
         """Runs the code that should be completed when the code decides to use this weapon"""
 
         if self.ammo_left > 0 or not self.has_limited_ammo:
-            self.sub_components.append(BouncyProjectile(self.get_weapon_left_edge(BOUNCY_PROJECTILE_SIZE, self.user.should_shoot_right),
+            self.collidable_components.append(BouncyProjectile(self.get_weapon_left_edge(BOUNCY_PROJECTILE_SIZE, self.user.should_shoot_right),
                                                         self.user.projectile_top_edge, self.user.should_shoot_right,
                                                         self.user.projectile_height, self.user_max_velocity, self.object_type,
                                                         self.total_hit_points, self.user, f"games/platformer/images/{self.user_type}_bouncy_projectile"))

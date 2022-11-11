@@ -1,13 +1,13 @@
 from gui_components.component import Component
 from base.velocity_calculator import VelocityCalculator
 from base.important_variables import *
-from game_dependencies.platformer.platformer_constants import POWERUP_LENGTH, POWERUP_HEIGHT
+from game_dependencies.platformer.platformer_constants import POWERUP_LENGTH, POWERUP_HEIGHT, POWERUP_OBJECT_TYPE
 
 
 class Powerup(Component):
     """Anything in the game that aids the player in killing enemies (weapons, damage boosts, ammo, etc.)"""
 
-    object_type = "##Powerup"
+    object_type = POWERUP_OBJECT_TYPE
 
     length = POWERUP_LENGTH
     height = POWERUP_HEIGHT

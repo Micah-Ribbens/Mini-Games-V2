@@ -52,17 +52,16 @@ class ChargingBull(Enemy):
 
         for player in players:
             distance = self.left_edge - player.right_edge
-            distance_needed = VelocityCalculator.get_measurement(screen_length, 45)
-            should_charge = distance <= distance_needed and CollisionsEngine.is_vertical_collision(player, self)
+            should_charge = distance <= CHARGING_BULL_DISTANCE_NEEDED_TO_CHARGE and CollisionsEngine.is_vertical_collision(player, self)
 
             if should_charge:
                 self.is_charging = True
 
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
         """Runs the collision for an inanimate object"""
 
-        is_left_collision = CollisionsEngine.is_left_collision(self, inanimate_object, True, time)
-        is_right_collision = CollisionsEngine.is_right_collision(self, inanimate_object, True, time)
+        is_left_collision = CollisionsEngine.is_left_collision(self, inanimate_object, True)
+        is_right_collision = CollisionsEngine.is_right_collision(self, inanimate_object, True)
         is_horizontal_collision = is_left_collision or is_right_collision
 
         if is_horizontal_collision:
@@ -70,7 +69,7 @@ class ChargingBull(Enemy):
 
         # If it is not a horizontal collision, then it must be the top collision
         if not is_horizontal_collision:
-            self.update_top_collision_data(inanimate_object, time)
+            self.update_top_collision_data(inanimate_object)
 
     def run_horizontal_inanimate_object_collision(self, inanimate_object, is_left_collision, is_right_collision):
         """Runs the horizontal direction of inanimate object collisions"""

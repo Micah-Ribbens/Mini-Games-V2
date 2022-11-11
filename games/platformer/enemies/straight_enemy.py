@@ -24,13 +24,12 @@ class StraightEnemy(Enemy):
         self.number_set_dimensions(platform.left_edge, platform.top_edge - self.height, self.length, self.height)
 
         top_edge = platform.top_edge - self.height
-        wait_time = 1
         # Creating the action_path for the ninja
         self.action_path = ActionPath(Point(platform.right_edge - self.length, top_edge), self, STRAIGHT_ENEMY_HORIZONTAL_VELOCITY)
         self.action_path.add_point(Point(platform.left_edge, top_edge), lambda: [])
-        self.action_path.add_point(Point(platform.left_edge, top_edge), self.shoot_star, wait_time)
+        self.action_path.add_point(Point(platform.left_edge, top_edge), self.shoot_star, STRAIGHT_ENEMY_ACTION_PATH_WAIT_TIME)
         self.action_path.add_point(Point(platform.right_edge - self.length, top_edge), lambda: [])
-        self.action_path.add_point(Point(platform.right_edge - self.length, top_edge), self.shoot_star, wait_time)
+        self.action_path.add_point(Point(platform.right_edge - self.length, top_edge), self.shoot_star, STRAIGHT_ENEMY_ACTION_PATH_WAIT_TIME)
 
         self.action_path.is_unending = True
         self.weapon = StraightProjectileThrower(lambda: False, self, STRAIGHT_ENEMY_HORIZONTAL_VELOCITY)
@@ -41,7 +40,6 @@ class StraightEnemy(Enemy):
 
         self.action_path.update_for_side_scrolling(amount)
         self.weapon.update_for_side_scrolling(amount)
-        # super().update_for_side_scrolling(amount)
 
     def hit_player(self, player, index_of_sub_component):
         pass
@@ -52,9 +50,6 @@ class StraightEnemy(Enemy):
     def run(self):
         """Runs everything necessary in order for this enemy to work"""
 
-        self.sub_components = [self] + self.weapon.get_sub_components()
-
-        self.components = self.sub_components + [self.health_bar]
         self.action_path.run()
         self.weapon.run()
 
@@ -68,6 +63,11 @@ class StraightEnemy(Enemy):
     @property
     def projectile_velocity(self):
         return STRAIGHT_ENEMY_HORIZONTAL_VELOCITY
+
+    def get_components(self):
+        """returns: Component[]; all the components of the straight enemy that should be rendered and ran"""
+
+        return [self] + self.weapon.get_collidable_components() + [self.health_bar]
 
 
 

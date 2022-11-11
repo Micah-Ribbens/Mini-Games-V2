@@ -18,7 +18,7 @@ class Weapon(abc.ABC):
     use_action = None
     use_key_event = None
     user = None
-    sub_components = []
+    collidable_components = []
     wait_event = None
     object_type = "" # Used for collisions, so the collision code knows the type of an object
     index = 0
@@ -33,7 +33,7 @@ class Weapon(abc.ABC):
         self.user = user
         self.name = id(self)
         self.wait_event = TimedEvent(cool_down_time, False)
-        self.sub_components = [self]
+        self.collidable_components = []
         self.object_type = f"{self.user.user_type} Weapon"
 
         self.update_weapon_values(damage, hit_points, cool_down_time)
@@ -53,10 +53,10 @@ class Weapon(abc.ABC):
         self.total_hit_points, self.hit_points_left = hit_points, hit_points
         self.wait_event.time_needed = cool_down_time
 
-    def get_sub_components(self):
-        """returns: GameObject[0]; all the sub components that must be rendered and have collisions for"""
+    def get_collidable_components(self):
+        """returns: Component[]; all the sub components that must be rendered and have collisions for"""
 
-        return self.sub_components
+        return self.collidable_components
 
     def get_weapon_left_edge(self, horizontal_length, is_facing_right):
         """returns: left_edge; the recommended x coordinate that the weapon should be at (right on the user)"""
@@ -75,7 +75,7 @@ class Weapon(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component, time):
+    def run_inanimate_object_collision(self, inanimate_object, index_of_sub_component):
         """Runs what should happen when the weapon and an inanimate object collide"""
         pass
 

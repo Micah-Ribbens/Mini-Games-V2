@@ -75,9 +75,13 @@ class PlatformerScreen(Screen):
         file_reader = FileReader("games\platformer\high_scores.txt")
         self.high_score = int(file_reader.get_float_list("high_scores")[0])
 
-        health_grid = Grid(Dimensions(0, 0, self.health_grid_length, self.health_grid_height), 2, 2)
-        self.players = [Player(KEY_A, KEY_D, KEY_W, KEY_S, KEY_F)]
         self.setup_enemies_and_platforms()
+        self.setup_players()
+
+    def setup_players(self):
+        """Creates all the player's and all the necessary stuff associated with them (GravityEngine, HealthGrid, Generator, HUD)"""
+
+        self.players = [Player(KEY_A, KEY_D, KEY_W, KEY_S, KEY_F)]
         self.gravity_engine = GravityEngine(self.players, self.players[0].jumping_path.acceleration)
 
         for player in self.players:
@@ -88,30 +92,18 @@ class PlatformerScreen(Screen):
 
             self.player_health_bars.append(HealthBar(player, lambda: False))
 
+        health_grid = Grid(Dimensions(0, 0, self.health_grid_length, self.health_grid_height), 2, 2)
         health_grid.turn_into_grid(self.player_health_bars, None, None)
+
         self.generator = Generator(self.players[0])
         self.hud.set_dimensions(health_grid.dimensions.right_edge, 0, self.hud_length, self.hud_height)
 
     def setup_enemies_and_platforms(self):
         """Creates the enemies and platforms of the game for starting out"""
 
-        # Platform above you
-        # self.platforms = [Platform(), Platform(Platform().x_coordinate, Platform().y_coordinate - self.players[0].max_jump_height * 1/2 - 200 - self.players[0].height, screen_length, 200, True)]
-
-        # Two normal platforms
-        # self.platforms = [Platform(), Platform(Platform().right_edge + 200, Platform().y_coordinate - self.players[0].max_jump_height, 200a, 200, True)]
-
         # One Long Platform
         self.platforms = [Platform(START_PLATFORM_LEFT_EDGE, START_PLATFORM_TOP_EDGE, START_PLATFORM_LENGTH, START_PLATFORM_HEIGHT)]
-
-        # Sandwich Platform
-        # self.platforms = [Platform(100, 300, 800, 100), Platform(0, 200, 100, 100), Platform(910, 200, 100, 100)]
-
-        # One Medium Platform
-        # self.platforms = [Platform(100, 300, 800, 100, True)]
-
         self.enemies = []
-
         self.update_rightmost_platform()
 
     def run(self):
@@ -126,41 +118,53 @@ class PlatformerScreen(Screen):
     def run_game_code(self):
         """Runs all the code for running the game that runs when the intermediate screen is not being displayed"""
 
-        if self.player_score > self.high_score:
-            self.is_high_score = True
-            self.high_score = self.player_score
+        self.run_player_and_enemies()
+        self.run_all_collisions()
+
+        # All the enemies and players should do something based on the updated collision they got from 'self.run_all_collisions()'
+        for game_object in self.enemies + self.players:
+            game_object.run_collisions()
+
+        self.add_game_objects_to_history_keeper()
+        self.run_side_scrolling()
+        self.run_platform_generation()
+
+    def run_player_and_enemies(self):
+        """Runs all the code associated with the player's and enemies that is not collisions"""
+
+        self.update_score()
+        self.gravity_engine.run()
+        self.powerups = list(filter(lambda item: item.right_edge >= 0, self.powerups))
 
         self.ammo_field.text = f"Ammo Left: {self.players[0].ammo_left}"
-        self.hud.update([self.player_score], self.high_score)
-        self.gravity_engine.run()
+
         for player in self.players:
-            # Have to do this every cycle so the player is realisticly affected by gravity every cycle
             if player.platform_is_on is not None and not CollisionsEngine.is_collision(player, player.platform_is_on):
                 player.set_is_on_platform(False, None)
+
+            if player.hit_points_left <= 0 or not is_within_screen(player):
+                self.run_player_respawn()
+
+            if CollisionsEngine.is_collision(player, self.wall_of_death):
+                self.reset_game()
 
             # So the player is moves before side scrolling happens
             player.run()
 
-        if self.frames % 1 == 0 and self.frames > 1:
-            self.update_game_objects()
-            self.run_all_collisions()
-
-            # All the enemies and players should do something based on the updated collision they got from 'self.run_all_collisions()'
-            for game_object in self.enemies + self.players:
-                game_object.run_collisions(self.last_time)
-
-        if self.frames % 1 == 0:
-            self.add_game_objects()
-            self.last_time = VelocityCalculator.time
-
         for enemy in self.enemies:
             enemy.run_player_interactions(self.players)
 
-        self.powerups = list(filter(lambda item: item.right_edge >= 0, self.powerups))
-        self.frames += 1
+            if enemy.hit_points_left <= 0:
+                self.player_score += SCORE_FROM_KILLING_ENEMY
 
-        self.run_side_scrolling()
-        self.run_platform_generation()
+    def update_score(self):
+        """Updates the HUD and the high score of the player"""
+
+        if self.player_score > self.high_score:
+            self.is_high_score = True
+            self.high_score = self.player_score
+
+        self.hud.update([self.player_score], self.high_score)
 
     def run_platform_generation(self):
         """Runs all the code for generating platforms"""
@@ -169,10 +173,12 @@ class PlatformerScreen(Screen):
             difficulty = self.score_to_difficulty.get_y_coordinate(self.player_score)
             new_platform = self.generator.generate_platform(self.rightmost_platform, difficulty)
             self.platforms.append(new_platform)
+            self.update_rightmost_platform()
+
             new_enemy = self.get_random_enemy(new_platform)
             self.enemies.append(new_enemy)
-            self.update_rightmost_platform()
             self.gravity_engine.add_game_objects([new_enemy])
+
             self.number_of_platforms_generated += 1
             self.run_powerup_spawning(new_platform)
 
@@ -226,19 +232,12 @@ class PlatformerScreen(Screen):
         self.side_scroll_objects(side_scrolling_distance, self.powerups)
         self.wall_of_death.update_for_side_scrolling(side_scrolling_distance)
 
-    def update_game_objects(self):
-        """Runs the necessary code to prepare for collisions and some other miscellaneous stuff like making sure
-        killed enemies are not put onto the screen and resetting the game if the player dies"""
+    def get_code_ready_for_collisions(self):
+        """Runs the necessary code to prepare for collisions: makes """
 
         player_components = []
         for player in self.players:
-            if player.hit_points_left <= 0 or not is_within_screen(player):
-                self.run_player_respawn()
-
-            if CollisionsEngine.is_collision(player, self.wall_of_death):
-                self.reset_game()
-
-            player_components += player.get_sub_components()
+            player_components += player.get_collidable_components()
             player.reset_collision_data()
 
         updated_enemies = []
@@ -246,12 +245,17 @@ class PlatformerScreen(Screen):
         for enemy in self.enemies:
             enemy.reset_collision_data()
 
-            if enemy.hit_points_left <= 0:
-                self.player_score += SCORE_FROM_KILLING_ENEMY
-
             if enemy.hit_points_left > 0 and enemy.platform.right_edge >= 0:
                 updated_enemies.append(enemy)
-                enemy_components += enemy.get_sub_components()
+                enemy_components += enemy.get_collidable_components()
+
+        self.enemies = updated_enemies
+
+        self.remove_platforms_not_within_screen()
+        self.game_objects = player_components + enemy_components + self.platforms + self.powerups
+
+    def remove_platforms_not_within_screen(self):
+        """Removes all the platforms that are not within the screen"""
 
         updated_platforms = []
         for platform in self.platforms:
@@ -260,11 +264,7 @@ class PlatformerScreen(Screen):
 
             else:
                 self.player_score += SCORE_FROM_PASSING_PLATFORM
-
         self.platforms = updated_platforms
-
-        self.enemies = updated_enemies
-        self.game_objects = player_components + enemy_components + self.platforms + self.powerups
 
     def run_player_respawn(self):
         """Makes the player respawn"""
@@ -326,78 +326,81 @@ class PlatformerScreen(Screen):
     def run_all_collisions(self):
         """Runs all the collisions between the player, projectiles, and enemies"""
 
-        # TODO maybe could make this quicker, but not sure if it is worth it
+        self.get_code_ready_for_collisions()
+
         for i in range(len(self.game_objects)):
             object1 = self.game_objects[i]
-            # Only the objects that can be added to the History Keeper should be checked for a collision; also
-            # The platforms don't need to check to see if they collided with other objects because if something
-            # Collides with the platform it won't do anything in reaction
-            if not object1.is_addable or self.is_platform(object1):
-                continue
 
-            for j in range(len(self.game_objects)):
+            for j in range(i, len(self.game_objects)):
                 object2 = self.game_objects[j]
 
-                collision_is_possible = object2.is_addable and len(object1.object_type) != len(object2.object_type)
+                collision_is_possible = len(object1.object_type) != len(object2.object_type)
+                collision_has_happened = collision_is_possible and CollisionsEngine.is_collision(object1, object2)
 
-                if collision_is_possible and CollisionsEngine.is_collision(object1, object2):
+                # The 'self.run_object_collisions' should only be called if the main object is not a platform
+                if collision_has_happened and not self.is_platform(object1):
                     self.run_object_collisions(object1, object2)
+
+                if collision_has_happened and not self.is_platform(object2):
+                    self.run_object_collisions(object2, object1)
 
     def run_object_collisions(self, main_object, other_object):
         """Runs the collisions between the 'main_object' and the 'other_object;' the main_object acts upon the other_object.
         By act upon I mean damages the other_object, moves the other_object, etc."""
 
-        self.run_user_weapon_inanimate_collisions(self.is_player_weapon(main_object), self.is_player(main_object), main_object, other_object)
-        self.run_user_weapon_inanimate_collisions(self.is_enemy_weapon(main_object), self.is_enemy(main_object), main_object, other_object)
+        if self.is_player(main_object) or self.is_player_weapon(main_object):
+            self.run_player_collisions(main_object, other_object)
 
-        if self.is_player(main_object) and self.is_powerup(other_object):
-            other_object.run_player_collision(main_object)
+        elif self.is_enemy(main_object) or self.is_enemy_weapon(main_object):
+            self.run_enemy_collisions(main_object, other_object)
+
+        elif self.is_powerup(main_object) and self.is_player(other_object):
+            main_object.run_player_collision(other_object)
 
             # Removes it from the screen so it is deleted: can't delete here because that would cause issues with modifying
             # a list while it is being iterated over
             other_object.left_edge = -1000
 
-        if self.is_enemy(main_object) and self.is_player(other_object):
-            main_object.run_enemy_collision(other_object, main_object.index)
+    def run_player_collisions(self, main_object, other_object):
+        """Runs the collisions for when the player is the main object"""
 
-        if self.is_enemy_weapon(main_object) and self.is_player(other_object):
-            main_object.user.run_enemy_collision(other_object, main_object.index)
+        collision_function_parameters = [other_object, main_object.index]
+        has_collided_with_enemy = self.is_enemy_weapon(other_object) or self.is_enemy(other_object)
 
-        if self.is_enemy_weapon(main_object) and self.is_platform(other_object):
-            main_object.user.run_inanimate_object_collision(other_object, main_object.index, self.last_time)
+        if self.is_player(main_object) and self.is_platform(other_object):
+            main_object.run_inanimate_object_collision(*collision_function_parameters)
 
-        if self.is_player_weapon(main_object) and self.is_enemy(other_object):
-            main_object.user.run_enemy_collision(other_object, main_object.index)
+        elif self.is_player_weapon(main_object) and self.is_platform(other_object):
+            main_object.user.run_inanimate_object_collision(*collision_function_parameters)
 
-        # Doing it this way, so a collision does not happen twice - once when the player_weapon is the main_object
-        # And the other where the enemy_weapon is the main_object.
-        if self.is_player_weapon(main_object) and self.is_enemy_weapon(other_object):
-            main_object.user.run_enemy_collision(other_object, main_object.index)
+        elif self.is_player_weapon(main_object) and has_collided_with_enemy:
+            main_object.user.run_enemy_collision(*collision_function_parameters)
 
-        if self.is_enemy_weapon(main_object) and self.is_enemy_weapon(other_object):
-            main_object.user.run_enemy_collision(other_object, main_object.index)
+    def run_enemy_collisions(self, main_object, other_object):
+        """Runs the collisions for when the enemy is the main object"""
 
-    def run_user_weapon_inanimate_collisions(self, is_weapon, is_user, user_or_weapon, other_object):
-        """Runs the collisions between the user + the user's weapon and inanimate objects"""
+        collision_function_parameters = [other_object, main_object.index]
+        if self.is_enemy(main_object) and self.is_platform(other_object):
+            main_object.run_inanimate_object_collision(*collision_function_parameters)
 
-        if is_user and self.is_platform(other_object):
-            user_or_weapon.run_inanimate_object_collision(other_object, user_or_weapon.index, self.last_time)
+        elif self.is_enemy_weapon(main_object) and self.is_platform(other_object):
+            main_object.user.run_inanimate_object_collision(*collision_function_parameters)
 
-        if is_weapon and self.is_platform(other_object):
-            user_or_weapon.user.run_inanimate_object_collision(other_object, user_or_weapon.index, self.last_time)
+        elif self.is_enemy(main_object) and self.is_player(other_object):
+            main_object.run_enemy_collision(*collision_function_parameters)
 
-    def add_game_objects(self):
+        elif self.is_enemy_weapon(main_object) and self.is_player(other_object):
+            main_object.user.run_enemy_collision(*collision_function_parameters)
+
+    def add_game_objects_to_history_keeper(self):
         """Adds all the game objects to the HistoryKeeper"""
 
-        for player in self.players:
-            self.add_sub_components(player.get_sub_components())
+        for game_object in self.enemies + self.players:
+            self.add_collidable_components(game_object.get_collidable_components())
 
-        self.add_sub_components(self.platforms)
+        self.add_collidable_components(self.platforms)
 
-        for enemy in self.enemies:
-            self.add_sub_components(enemy.get_sub_components())
-
-    def add_sub_components(self, component_list):
+    def add_collidable_components(self, component_list):
         """Adds all the components in the component_list to the History Keeper"""
 
         for component in component_list:
